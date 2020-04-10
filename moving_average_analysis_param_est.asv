@@ -9,14 +9,10 @@ colors_p = colors_p(1:end-1,:);
 
 
 
-
+%%%% SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 window_length_list = [0.01 0.05 0.1 0.2 1.0 10];
 dt = 0.01;             % [sec]
 x0 = [.2 0]';          % Initial state
-
-
-
-
 
 
 
@@ -46,7 +42,7 @@ for t= 0:dt:10
    if t > pi, ref = [-0.1*sin(2*t)+0.1 0]'; end
   
 %% make a noisy measurements
-   b_meas = b + 5.0*(rand()-0.5);
+   b_meas = b + 10.0*(rand()-0.5);
 %     b_meas = b + normrnd(0, 5.0);
   
 
@@ -85,14 +81,14 @@ hl = legend('show');
 set(hl, 'Interpreter','latex','FontSize',12)
 xlabel('$t [s]$','Interpreter','latex','FontSize',12)
 ylabel('friction coefficient $b$','Interpreter','latex','FontSize',12)
-title(['Window length = ' num2str(window_length) 's' ' (' num2str(num_window_samples) ' records' ')'],'Interpreter','latex','FontSize',14)
+title(['Window length = ' num2str(window_length) 's' ' (' num2str(num_window_samples) ' records' ')'],'Interpreter','latex','FontSize',12)
 grid on
 
 
 
 
 figure(2)
-subplot(1,2,1)
+subplot(2,1,1)
 hold on
 t = dt*(1:1:size(X,2));
 p1 = plot(t, X(1,:),'LineWidth',1.0,'DisplayName','$\theta$', 'Color',colors_p(w,:));
@@ -102,7 +98,7 @@ end
 p1.Color(4) = 0.8;
 
 
-subplot(1,2,2)
+subplot(2,1,2)
 hold on
 t = dt*(1:1:size(X,2));
 p2 = plot(t, X(2,:),'LineWidth',1.0,'DisplayName','$\dot{\theta}$', 'Color',colors_p(w,:));
@@ -114,7 +110,7 @@ p2.Color(4) = 0.8;
 
 
 figure(3)
-subplot(1,2,1)
+subplot(2,1,1)
 hold on
 e_norm = sqrt((X(1,:)-X(6,:)).^2+(X(2,:)-X(7,:)).^2);
 E_norm = cumsum(e_norm);
@@ -122,7 +118,7 @@ pe = plot(t, E_norm,'LineWidth',1.0,'DisplayName','$\theta$', 'Color',colors_p(w
 pe.Color(4) = 0.8;
 
 figure(3)
-subplot(1,2,2)
+subplot(2,1,2)
 hold on
 pu = plot(t, X(8,:),'LineWidth',1.0,'DisplayName','$\theta$', 'Color',colors_p(w,:));
 pu.Color(4) = 0.8;
@@ -131,17 +127,23 @@ end
 
 
 figure(2)
-subplot(1,2,1)
+
+subplot(2,1,1)
 xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
 ylabel('$\theta$ [rad]','Interpreter','latex','FontSize',14)
 grid on
+colormap(colors_p);
+Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+cb = colorbar('Ticks',  Tk, 'TickLabels',string(window_length_list));
+cb.Label.String = 'window length [s]';
+cb.FontSize = 12;
+cb.Label.Interpreter = 'latex';
+cb.TickLabelInterpreter = 'latex';
 
-subplot(1,2,2)
+subplot(2,1,2)
 xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
 ylabel('$\dot{\theta}$ [rad/s]','Interpreter','latex','FontSize',14)
 grid on
-
-
 colormap(colors_p);
 Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
 cb = colorbar('Ticks',  Tk, 'TickLabels',string(window_length_list));
@@ -152,17 +154,9 @@ cb.TickLabelInterpreter = 'latex';
 
 
 figure(3)
-subplot(1,2,1)
+subplot(2,1,1)
 xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
 ylabel('cumulative $|e|$','Interpreter','latex','FontSize',14)
-grid on
-
-
-
-figure(3)
-subplot(1,2,2)
-xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
-ylabel('input signa $u$','Interpreter','latex','FontSize',14)
 colormap(colors_p);
 Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
 cb = colorbar('Ticks',  Tk, 'TickLabels',string(window_length_list));
@@ -171,6 +165,22 @@ cb.FontSize = 12;
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'latex';
 grid on
+
+
+figure(3)
+subplot(2,1,2)
+xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+ylabel('input signa $u$ [Nm] ','Interpreter','latex','FontSize',14)
+colormap(colors_p);
+Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+cb = colorbar('Ticks', Tk, 'TickLabels',string(window_length_list));
+cb.Label.String = 'window length [s]';
+cb.FontSize = 12;
+cb.Label.Interpreter = 'latex';
+cb.TickLabelInterpreter = 'latex';
+grid on
+
+
 
 function u = controller(A, B, x, ref)
 U = 5; % controller limit

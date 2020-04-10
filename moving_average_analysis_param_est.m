@@ -9,14 +9,10 @@ colors_p = colors_p(1:end-1,:);
 
 
 
-
+%%%% SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 window_length_list = [0.01 0.05 0.1 0.2 1.0 10];
 dt = 0.01;             % [sec]
 x0 = [.2 0]';          % Initial state
-
-
-
-
 
 
 
@@ -171,7 +167,6 @@ cb.TickLabelInterpreter = 'latex';
 grid on
 
 
-
 figure(3)
 subplot(2,1,2)
 xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
@@ -184,6 +179,8 @@ cb.FontSize = 12;
 cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'latex';
 grid on
+
+
 
 function u = controller(A, B, x, ref)
 U = 5; % controller limit
