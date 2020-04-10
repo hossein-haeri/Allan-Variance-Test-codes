@@ -4,7 +4,7 @@ set(groot,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');  
 set(groot, 'defaultLegendInterpreter','latex');
 
-window_length_list = [0.01 0.1 1.0 10];
+window_length_list = [0.01 0.05 0.1 0.2 1.0 10];
 mycolor =  lines(7);
 colors_p = parula(numel(window_length_list)+1);
 colors_p = colors_p(1:end-1,:);
@@ -30,7 +30,7 @@ num_window_samples = floor(window_length/dt);
 
 for t= 0:dt:10
 %% update the states
-   b = 8.0 + 5.5*sin(2*t);
+   b = 10.0 + 10*sin(0.2*t);
 %    b = 0.5;
    x_dot = dyn_model(x,u,b);
    x = x + x_dot.*dt;
@@ -55,20 +55,20 @@ for t= 0:dt:10
    end
    b_est = mean(win,2);
    
-   X = [X [x; b; b_meas; b_est; ref]];
+   
 %% linearize the system with the estimated parameter at the current operating point
    [A, B] = make_linear_at(x, u, b_est);
    
 %% obtain the input signal from controller
    u = controller(A, B, x, ref);
 
-
-
+    
+    X = [X [x; b; b_meas; b_est; ref; u]];
 end
 
 %% visualize the results
 figure(1)
-subplot(2,2,w)
+subplot(2,3,w)
 hold on
 t = dt*(1:1:size(X,2));
 % p1 = plot(t, X(1,:),'DisplayName','$\theta$','LineWidth',1.5);
@@ -77,6 +77,7 @@ p4 = plot(t, X(4,:),'DisplayName','$b_{meas}$','LineWidth',1.2, 'Color', mycolor
 % p4 = scatter(t, X(4,:), 'Marker','.', 'DisplayName','$b_{meas}$', 'MarkerFaceColor', mycolor(4,:));
 p5 = plot(t, X(5,:),'DisplayName','$b_{est}$','LineWidth',1.2, 'Color', mycolor(1,:));
 p3 = plot(t, X(3,:),'DisplayName','$b_{true}$','LineWidth',1.2, 'Color', mycolor(2,:), 'LineStyle','--');
+
 % p1.Color(4) = 0.5;
 % p2.Color(4) = 0.5;
 p3.Color(4) = 0.9;
@@ -93,24 +94,25 @@ grid on
 
 
 figure(2)
-subplot(1,2,1)
+% subplot(1,2,1)
 hold on
 t = dt*(1:1:size(X,2));
-p1 = plot(t, X(1,:),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
-if w == numel(window_length_list)
-pt1 = plot(t, X(6,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
-end
+% p1 = plot(t, sqrt((X(1,:)-X(6,:)).^2+(X(2,:)-X(7,:)).^2),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
+p1 = plot(t, X(8,:),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
+% if w == numel(window_length_list)
+% pt1 = plot(t, X(6,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
+% end
 p1.Color(4) = 0.8;
 
 
-subplot(1,2,2)
-hold on
-t = dt*(1:1:size(X,2));
-p2 = plot(t, X(2,:),'LineWidth',1.5,'DisplayName','$\dot{\theta}$', 'Color',colors_p(w,:));
-if w == numel(window_length_list)
-pt2 = plot(t, X(7,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
-end
-p2.Color(4) = 0.8;
+% subplot(1,2,2)
+% hold on
+% t = dt*(1:1:size(X,2));
+% p2 = plot(t, X(2,:)-X(7,:),'LineWidth',1.5,'DisplayName','$\dot{\theta}$', 'Color',colors_p(w,:));
+% % if w == numel(window_length_list)
+% % pt2 = plot(t, X(7,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
+% % end
+% p2.Color(4) = 0.8;
 
 
 
@@ -122,15 +124,15 @@ end
 
 
 figure(2)
-subplot(1,2,1)
+% subplot(1,2,1)
 xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
 ylabel('$\theta$ [rad]','Interpreter','latex','FontSize',14)
 grid on
 
-subplot(1,2,2)
-xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
-ylabel('$\dot{\theta}$ [rad/s]','Interpreter','latex','FontSize',14)
-grid on
+% subplot(1,2,2)
+% xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+% ylabel('$\dot{\theta}$ [rad/s]','Interpreter','latex','FontSize',14)
+% grid on
 
 
 colormap(colors_p);
