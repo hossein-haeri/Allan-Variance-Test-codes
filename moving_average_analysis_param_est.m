@@ -1,11 +1,5 @@
 clc
 close all
-set(groot,'defaulttextinterpreter','latex');  
-set(groot, 'defaultAxesTickLabelInterpreter','latex');  
-set(groot, 'defaultLegendInterpreter','latex');
-mycolor =  lines(7);
-colors_p = parula(numel(window_length_list)+1);
-colors_p = colors_p(1:end-1,:);
 
 
 
@@ -16,6 +10,15 @@ x0 = [.2 0]';          % Initial state
 
 
 
+set(groot,'defaulttextinterpreter','latex');  
+set(groot, 'defaultAxesTickLabelInterpreter','latex');  
+set(groot, 'defaultLegendInterpreter','latex');
+mycolor =  lines(7);
+colors_p = parula(numel(window_length_list)+1);
+colors_p = colors_p(1:end-1,:);
+
+
+
 for w= 1:numel(window_length_list)
 x = x0;           % set x to the initial state
 
@@ -23,7 +26,7 @@ x = x0;           % set x to the initial state
 window_length = window_length_list(w);
 X = [];
 u_hist = [];
-win = b;
+win = [];
 u = 0;
 count_cnt = 0;
 count_meas = 0;
@@ -38,8 +41,9 @@ for t= 0:dt:10
    
    
 %% build a reference trajectory
-   if t > 2, ref = [0.2 0]'; end
-   if t > pi, ref = [-0.1*sin(2*t)+0.1 0]'; end
+    if t >= 0, ref = [0 0]'; end
+    if t > 2,  ref = [0.2 0]'; end
+    if t > pi, ref = [-0.1*sin(2*t)+0.1 0]'; end
   
 %% make a noisy measurements
    b_meas = b + 10.0*(rand()-0.5);
