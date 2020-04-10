@@ -30,20 +30,20 @@ num_window_samples = floor(window_length/dt);
 
 for t= 0:dt:10
 %% update the states
-   b = 10.0 + 10*sin(0.2*t);
+   b = 1.0 + 0.8*sin(2*t);
 %    b = 0.5;
    x_dot = dyn_model(x,u,b);
    x = x + x_dot.*dt;
 
 %    ref = [0.3*cos(t) 0]';
-   if t > 2, ref = [0.5 0]'; end
-   if t > pi, ref = [-0.3*sin(t) 0]'; end
-   if t > 3*pi, ref = [0.0 0]'; end
-   
+   if t > 5, ref = [0.5 0]'; end
+%    if t > pi, ref = [-0.3*sin(t) 0]'; end
+%    if t > 3*pi, ref = [0.0 0]'; end
+%    
 %% make the noisy measurements
 
-%    b_meas = b + 10.9*(rand()-0.5);
-    b_meas = b + normrnd(0, 5);
+   b_meas = b + 0.9*(rand()-0.5);
+%     b_meas = b + normrnd(0, 0.5);
   
 
 %% take moving average of the state as the estimated state
@@ -94,25 +94,26 @@ grid on
 
 
 figure(2)
-% subplot(1,2,1)
+subplot(1,2,1)
 hold on
 t = dt*(1:1:size(X,2));
+p1 = plot(t, X(1,:),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
 % p1 = plot(t, sqrt((X(1,:)-X(6,:)).^2+(X(2,:)-X(7,:)).^2),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
-p1 = plot(t, X(8,:),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
-% if w == numel(window_length_list)
-% pt1 = plot(t, X(6,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
-% end
+% p1 = plot(t, X(8,:),'LineWidth',1.5,'DisplayName','$\theta$', 'Color',colors_p(w,:));
+if w == numel(window_length_list)
+pt1 = plot(t, X(6,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
+end
 p1.Color(4) = 0.8;
 
 
-% subplot(1,2,2)
-% hold on
-% t = dt*(1:1:size(X,2));
-% p2 = plot(t, X(2,:)-X(7,:),'LineWidth',1.5,'DisplayName','$\dot{\theta}$', 'Color',colors_p(w,:));
-% % if w == numel(window_length_list)
-% % pt2 = plot(t, X(7,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
-% % end
-% p2.Color(4) = 0.8;
+subplot(1,2,2)
+hold on
+t = dt*(1:1:size(X,2));
+p2 = plot(t, X(2,:),'LineWidth',1.5,'DisplayName','$\dot{\theta}$', 'Color',colors_p(w,:));
+if w == numel(window_length_list)
+pt2 = plot(t, X(7,:),'LineWidth',1.5,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
+end
+p2.Color(4) = 0.8;
 
 
 
@@ -124,15 +125,15 @@ end
 
 
 figure(2)
-% subplot(1,2,1)
+subplot(1,2,1)
 xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
 ylabel('$\theta$ [rad]','Interpreter','latex','FontSize',14)
 grid on
 
-% subplot(1,2,2)
-% xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
-% ylabel('$\dot{\theta}$ [rad/s]','Interpreter','latex','FontSize',14)
-% grid on
+subplot(1,2,2)
+xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+ylabel('$\dot{\theta}$ [rad/s]','Interpreter','latex','FontSize',14)
+grid on
 
 
 colormap(colors_p);
@@ -144,8 +145,8 @@ cb.Label.Interpreter = 'latex';
 cb.TickLabelInterpreter = 'latex';
 
 function u = controller(A, B, x, ref)
-U = 200; % controller limit
-    p = [-10 -8];
+U = 20; % controller limit
+    p = [-50 -16];
     K = place(A, B, p);
     u = -K*(x-ref);
     u = min(max(-U,u),U);
@@ -153,9 +154,10 @@ end
 
 
 
-function x_dot = dyn_model(x, u, b)
+function x_dot = dyn_model(x, u, m)
 g = 9.81;
-m = 1;
+b = 0.2;
+% m = 1;
 l = 1;
 I = m*l^2;
 x_dot = [0 0]';
