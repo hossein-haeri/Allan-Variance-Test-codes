@@ -22,13 +22,13 @@ colors_p = colors_p(1:end-1,:);
 x = x0;           % set x to the initial state
 
 
-window_length = 0.5;
+window_length = 1.5;
 
 X = [];
 u_hist = [];
 win = [];
 E = [];
-horizon = 20;
+horizon = 50;
 u = 0;
 count_cnt = 0;
 count_meas = 0;
@@ -58,17 +58,17 @@ for t= 0:dt:10
     j = [j norm(y_est - x)];
     j_avg = mean(j(max(1,end-horizon),end));
     J = [J [M; j_avg]];
-    sorted = sortrows(J',2,'ascend');
-    s = sorted(:,1);
-    M_new = normrnd(mean(s(1:min(20,numel(s)),1)),5+var(s(1:min(20,numel(s)),1)));
-    M_new = round(M_new)
+    sorted = sortrows(J',2,'descend');
+    M = normrnd(mean(sorted(1:max(10,numel(sorted)),1)),var(sorted(1:10,1)))
+    
     
    
+   
 %% update windown length
-    alpha = 0.1;  
-%     M_new = 0;
+    alpha = 0;  
+    M_new = 0;
     M = (1-alpha)*M + alpha*M_new;
-    M = round(M);
+    
     
 %% take moving average of the parameter as an estimate
    if size(win,2) < M
