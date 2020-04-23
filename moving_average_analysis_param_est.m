@@ -268,5 +268,3 @@ for i= 1:m
     B(:,i) = (dyn_model(x0, u0+ep_vector, b) - dyn_model(x0, u0, b))./ep;
 end
 end
-
-
