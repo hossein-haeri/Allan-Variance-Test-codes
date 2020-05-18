@@ -7,8 +7,8 @@ window_length_list = [0.01 0.05 0.1 0.2 1.0 5];
 dt = 0.01;             % [sec]
 x0 = [.2 0]';          % Initial state
 
-
-
+load('param.mat');
+param = param.*2000 + 2.5;
 set(groot,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','tex');
 set(groot, 'defaultLegendInterpreter','latex');
@@ -34,10 +34,11 @@ count_meas = 0;
 num_window_samples = floor(window_length/dt);
 E_norm = [];
 
-for t= 0:dt:50
+for t= 0:dt:5
 %% update the parameter value and states
-   theta = 2.0 + 1*sin(2*t);
-%    b = 2.0;
+%    theta = 2.0 + 1*sin(2*t);
+   theta = param(floor(t/dt + 1));
+   
    x_dot = dyn_model(x,u,theta);
    x = x + x_dot.*dt;
    
@@ -74,7 +75,7 @@ for t= 0:dt:50
 
     lam = eig(A_cl);
     lam_est = eig(A_cl_est);
-    e = norm(lam - [-1; 3])^2;
+    e = norm(lam - [-2; -4])^2;
     
    if numel(E) < horizon
        E = [E e];
@@ -94,16 +95,16 @@ figure(1)
 subplot(2,3,w)
 hold on
 t = dt*(1:1:size(X,2));
-p1 = plot(t, X(4,:),'DisplayName','$b_{meas}$','LineWidth',1.2, 'Color', mycolor(3,:),'LineStyle','-');
-p2 = plot(t, X(5,:),'DisplayName','$b_{est}$','LineWidth',1.2, 'Color', mycolor(1,:));
-p3 = plot(t, X(3,:),'DisplayName','$b_{true}$','LineWidth',1.2, 'Color', mycolor(2,:), 'LineStyle','--');
+p1 = plot(t, X(4,:),'DisplayName','$\theta_{meas}$','LineWidth',1.2, 'Color', mycolor(3,:),'LineStyle','-');
+p2 = plot(t, X(5,:),'DisplayName','$\theta_{est}$','LineWidth',1.2, 'Color', mycolor(1,:));
+p3 = plot(t, X(3,:),'DisplayName','$\theta_{actual}$','LineWidth',1.2, 'Color', mycolor(2,:), 'LineStyle','--');
 p1.Color(4) = 0.7;
 p2.Color(4) = 0.9;
 p3.Color(4) = 0.9;
 hl = legend('show');
 set(hl, 'Interpreter','latex','FontSize',12)
 xlabel('$t [s]$','Interpreter','latex','FontSize',12)
-ylabel('friction coefficient $b$','Interpreter','latex','FontSize',12)
+ylabel('Parameter $\theta$','Interpreter','latex','FontSize',12)
 title(['Window length = ' num2str(window_length) 's' ' (' num2str(num_window_samples) ' records' ')'],'Interpreter','latex','FontSize',12)
 grid on
 
@@ -228,11 +229,10 @@ figure(4)
 
 function [u,K] = controller(A, B, x, ref)
     U = 50; % controller limit
-    p = [-1 -3];
+    p = [-2 -4];
     K = place(A, B, p);
-%     K = [19 10];
     u = -K*(x-ref);
-    u = min(max(-U,u),U);
+%     u = min(max(-U,u),U);
 end
 
 
@@ -245,7 +245,7 @@ l = 1;
 I = m*l^2;
 x_dot = [0 0]';
 x_dot(1) = x(2);
-x_dot(2) = (u+m*g*sin(x(1)))/I  - (b*x(2)).^3;
+x_dot(2) = (u+m*g*sin(x(1)))/I  - (b*x(2));
 end
 
 

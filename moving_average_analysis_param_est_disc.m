@@ -1,0 +1,281 @@
+clc
+close all
+clear all
+
+%%%% SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+window_length_list = [0.01 0.05 0.1 0.2 1.0 5];
+window_length_list = 0.2;
+dt = 0.01;             % [sec]
+x0 = [.2 0]';          % Initial state
+latency = 80;           % [samples]
+
+
+
+
+load('param.mat');
+param = param.*2000 + 2.5;
+set(groot,'defaulttextinterpreter','latex');
+set(groot, 'defaultAxesTickLabelInterpreter','tex');
+set(groot, 'defaultLegendInterpreter','latex');
+mycolor =  lines(7);
+colors_p = parula(numel(window_length_list)+1);
+colors_p = colors_p(1:end-1,:);
+
+
+
+for w= 1:numel(window_length_list)
+x = x0;           % set x to the initial state
+
+
+window_length = window_length_list(w);
+X = [];
+u_hist = [];
+win = [];
+E = [];
+horizon = 20;
+u = 0;
+count_cnt = 0;
+count_meas = 0;
+num_window_samples = floor(window_length/dt);
+E_norm = [];
+
+for t= 0:dt:2
+% update the parameter value and states
+%    theta = 2.0 + 1*sin(2*t);
+    theta = param(floor(t/dt + 1));
+    [A, B] = dyn_model(x,u,theta);
+    x_dot = A*x + B*u;
+    x = x + x_dot.*dt;
+%    sys = ss(A,B,eye(2),0,'Ts',dt);
+%    A_d = sys.A;
+%    B_d = sys.B;
+% %    [A_d, B_d] = c2d(,dt);
+%    x = A_d*x + B_d*u;
+   
+   
+% build a reference trajectory
+    if t >= 0, ref = [0 0]'; end
+%     if t > 5,  ref = [0.2 0]'; end
+%     if t > 2*pi, ref = [-0.1*sin(2*t)+0.1 0]'; end
+  
+% make a noisy measurements
+%    theta_meas = theta + 10.0*(rand()-0.5);
+    theta_meas = param(floor(max(1, t/dt + 1 - latency))) + normrnd(0, 1.5);
+  
+
+% take moving average of the state as an estimate of the state
+    if size(win,2) < num_window_samples
+       win = [win theta_meas];
+    else
+       win = circshift(win,-1);
+       win(:,end) = theta_meas;
+    end
+    theta_est = mean(win,2);
+   
+   
+% calculate the dynamic model based on the new parameter value
+    [A, B] = dyn_model(x, u, theta);
+    [A_est, B_est] = dyn_model(x, u, theta_est);
+    
+% obtain the input signal from controller
+   [u, K] = controller(A_est, B_est, x, ref);
+
+    A_cl = A - B*K;
+    A_cl_est = A_est - B_est*K;
+
+    lam = eig(A_cl);
+    lam_est = eig(A_cl_est);
+    e = norm(lam - [-5; -10])^2;
+    
+   if numel(E) < horizon
+       E = [E e];
+   else
+       E = circshift(E,-1);
+       E(:,end) = e;
+   end
+   eigen_variance = sum(E)/horizon^2;
+    
+    
+% record the data into X    
+    X = [X [x; theta; theta_meas; theta_est; ref; u; eigen_variance]];
+end
+
+%% visualize the results
+figure(1)
+subplot(2,3,w)
+hold on
+t = dt*(1:1:size(X,2));
+p1 = plot(t, X(4,:),'DisplayName','$\theta_{meas}$','LineWidth',1.2, 'Color', mycolor(3,:),'LineStyle','-');
+p2 = plot(t, X(5,:),'DisplayName','$\theta_{est}$','LineWidth',1.2, 'Color', mycolor(1,:));
+p3 = plot(t, X(3,:),'DisplayName','$\theta_{actual}$','LineWidth',1.2, 'Color', mycolor(2,:), 'LineStyle','-');
+p1.Color(4) = 0.7;
+p2.Color(4) = 0.9;
+p3.Color(4) = 0.9;
+hl = legend('show');
+set(hl, 'Interpreter','latex','FontSize',12)
+xlabel('$t [s]$','Interpreter','latex','FontSize',12)
+ylabel('Parameter $\theta$','Interpreter','latex','FontSize',14)
+title(['Window length = ' num2str(window_length) 's' ' (' num2str(num_window_samples) ' records' ')'],'Interpreter','latex','FontSize',12)
+grid on
+
+
+
+
+figure(2)
+subplot(2,1,1)
+hold on
+t = dt*(1:1:size(X,2));
+p1 = plot(t, X(1,:),'LineWidth',1.0,'DisplayName','$\theta$', 'Color',colors_p(w,:));
+if w == numel(window_length_list)
+pt1 = plot(t, X(6,:),'LineWidth',1.0,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
+end
+p1.Color(4) = 0.8;
+title('Pendulum Position','Interpreter','latex','FontSize',14)
+
+
+subplot(2,1,2)
+hold on
+t = dt*(1:1:size(X,2));
+p2 = plot(t, X(2,:),'LineWidth',1.0,'DisplayName','$\dot{\theta}$', 'Color',colors_p(w,:));
+if w == numel(window_length_list)
+pt2 = plot(t, X(7,:),'LineWidth',1.0,'DisplayName','$ref$', 'Color',mycolor(2,:), 'LineStyle','--');
+end
+p2.Color(4) = 0.8;
+title('Pendulum Velocity','Interpreter','latex','FontSize',14)
+
+
+
+figure(3)
+subplot(2,1,1)
+hold on
+e_norm = sqrt((X(1,:)-X(6,:)).^2+(X(2,:)-X(7,:)).^2);
+E_norm = cumsum(e_norm);
+pe = plot(t, E_norm,'LineWidth',1.0,'DisplayName','$\theta$', 'Color',colors_p(w,:));
+pe.Color(4) = 0.8;
+
+figure(3)
+subplot(2,1,2)
+hold on
+pu = plot(t, X(8,:),'LineWidth',1.0,'DisplayName','$\theta$', 'Color',colors_p(w,:));
+pu.Color(4) = 0.8;
+
+
+
+figure(4)
+pv = plot_with_bounds(t,X(9,:),30, colors_p(w,:));
+pv.Color(4) = 0.8;
+hold on
+
+end
+
+
+
+figure(2)
+
+    subplot(2,1,1)
+        xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+        ylabel('$\theta$ [rad]','Interpreter','latex','FontSize',14)
+        grid on
+        colormap(colors_p);
+        Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+        cb = colorbar('Ticks',  Tk, 'TickLabels',string(window_length_list));
+        cb.Label.String = 'window length [s]';
+        cb.FontSize = 12;
+        cb.Label.Interpreter = 'latex';
+        cb.TickLabelInterpreter = 'latex';
+
+    subplot(2,1,2)
+        xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+        ylabel('$\dot{\theta}$ [rad/s]','Interpreter','latex','FontSize',14)
+        grid on
+        colormap(colors_p);
+        Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+        cb = colorbar('Ticks',  Tk, 'TickLabels',string(window_length_list));
+        cb.Label.String = 'window length [s]';
+        cb.FontSize = 12;
+        cb.Label.Interpreter = 'latex';
+        cb.TickLabelInterpreter = 'latex';
+
+
+figure(3)
+    subplot(2,1,1)
+        xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+        ylabel('cumulative $|e|$','Interpreter','latex','FontSize',14)
+        colormap(colors_p);
+        Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+        cb = colorbar('Ticks',  Tk, 'TickLabels',string(window_length_list));
+        cb.Label.String = 'window length [s]';
+        cb.FontSize = 12;
+        cb.Label.Interpreter = 'latex';
+        cb.TickLabelInterpreter = 'latex';
+        grid on
+
+
+figure(3)
+    subplot(2,1,2)
+        xlabel('$t$ [s]','Interpreter','latex','FontSize',14)
+        ylabel('input signa $u$ [Nm] ','Interpreter','latex','FontSize',14)
+        colormap(colors_p);
+        Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+        cb = colorbar('Ticks', Tk, 'TickLabels',string(window_length_list));
+        cb.Label.String = 'window length [s]';
+        cb.FontSize = 12;
+        cb.Label.Interpreter = 'latex';
+        cb.TickLabelInterpreter = 'latex';
+        grid on
+
+
+figure(4)
+    xlabel('$t$ [s]','Interpreter','latex')
+    ylabel('Eigenvalues variance','Interpreter','latex')
+    colormap(colors_p);
+    Tk = linspace(1/(2*numel(window_length_list)),1 - 1/(2*numel(window_length_list)),numel(window_length_list));
+    cb = colorbar('Ticks', Tk, 'TickLabels',string(window_length_list));
+    cb.Label.String = 'window length [s]';
+    cb.FontSize = 12;
+    cb.Label.Interpreter = 'latex';
+    cb.TickLabelInterpreter = 'latex';
+    grid on
+
+function [u,K] = controller(A, B, x, ref)
+    U = 50; % controller limit
+    p = [-5 -10];
+    K = place(A, B, p);
+    u = -K*(x-ref);
+%     u = min(max(-U,u),U);
+end
+
+
+
+function [A, B] = dyn_model(x, u, m)
+g = 9.81;
+b = 0.2;
+% m = 1;
+l = 1;
+I = m*l^2;
+
+A = [0 1; m*g/I -b/I];
+B = [0 1/I]';
+
+end
+
+
+
+
+function [A, B] = make_linear_at(x0, u0, b)
+n = numel(x0);
+m = numel(u0);
+A = zeros(n);
+B = zeros(n,m);
+ep = 0.01;
+for i= 1:n
+    ep_vector = zeros(n,1);
+    ep_vector(i) = ep;
+    A(:,i) = (dyn_model(x0+ep_vector, u0, b) - dyn_model(x0, u0, b))./ep;
+end
+for i= 1:m
+    ep_vector = zeros(m,1);
+    ep_vector(i) = ep;
+    B(:,i) = (dyn_model(x0, u0+ep_vector, b) - dyn_model(x0, u0, b))./ep;
+end
+end

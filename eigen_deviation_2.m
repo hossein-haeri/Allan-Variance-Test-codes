@@ -5,16 +5,18 @@ clear all
 %%%% SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 window_length_list = [0.01 0.05 0.1 0.2 1.0 2];
 window_length_list = [0.01 (0.05:0.05:2)];
+% window_length_list = logspace(0.01,5,20);
+
 dt = 0.01;             % [sec]
 x0 = [.2 0]';          % Initial state
-
+                       
 
 
 set(groot,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','tex');
 set(groot, 'defaultLegendInterpreter','latex');
 mycolor =  lines(7);
-colors_p = parula(numel(window_length_list)+1);
+colors_p = parula(numel(window_length_list)+1);                       
 colors_p = colors_p(1:end-1,:);
 
 AVAR = [];
@@ -73,10 +75,13 @@ EGNV = [];
 
         A_cl = A - B*K;
         A_cl_est = A_est - B_est*K;
-
+        
+        sys = ss(A_cl);
+        A_cl_d = c2d(sys,0.01);
+        
         lam = eig(A_cl);
-        lam_est = eig(A_cl_est);
-        e = norm(lam - [-1; 3])^2;
+%         lam_est = eig(A_cl_est);
+        e = norm(lam - [-20; -40])^2;
 
        if numel(E) < horizon
            E = [E e];
@@ -162,7 +167,7 @@ AVAR = [AVAR [num_window_samples,mean(EGNV)]'];
 end
 
 figure(4)
-plot(AVAR(1,:),AVAR(2,:),'LineWidth',1);
+semilogx(AVAR(1,:),AVAR(2,:),'LineWidth',1);
 
 % 
 % figure(2)
@@ -234,11 +239,11 @@ figure(4)
 
 function [u,K] = controller(A, B, x, ref)
     U = 50; % controller limit
-    p = [-1 -3];
+    p = [-20 -40];
     K = place(A, B, p);
 %     K = [19 10];
     u = -K*(x-ref);
-    u = min(max(-U,u),U);
+%     u = min(max(-U,u),U);
 end
 
 
