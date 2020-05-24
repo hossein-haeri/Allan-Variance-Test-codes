@@ -1,26 +1,29 @@
 close all
 clear all
 clc
-
-N = 4;
+set(groot,'defaulttextinterpreter','tex');
+set(groot, 'defaultAxesTickLabelInterpreter','tex');
+set(groot, 'defaultLegendInterpreter','tex');
+set(groot, 'defaultAxesFontSize',14);
+N = 1;
 color = lines(N+1);
-num_samples = 2000;
+num_samples = 5000;
 t = linspace(0,10,num_samples);
 q = floor(numel(t)/2);
 y = 80*sin(t).^1;
 
 data = [];
-sigma = [50 100 120 30];
+sigma = [80 100 120 30];
 for n= 1:N
 %    data = [data; y + b(n)*(rand(1,numel(t))-0.5)];
     data = [data; y + (normrnd(0,sigma(n),[1 numel(t)]))];
 end
 
-W = 1./sigma.^2;
+W = 1./sigma(1:N).^2;
 data = [data; W*data./sum(W)];
 
 
-N = N+1;
+N = N;
 
 
 y = y(floor(numel(t)/2):end);
@@ -28,10 +31,10 @@ y = y(floor(numel(t)/2):end);
 
 
 M = 20;
-gamma = 1.2;
-tau = floor(numel(t)/gamma^5);
+gamma = 1.15;
+tau = floor(numel(t)/gamma^10);
 
-while tau(1) > 5
+while tau(1) > 10
     tau = [floor(tau(1)/gamma) tau];
 end
 
@@ -119,14 +122,17 @@ subplot(2,1,1)
     set(gca,'yscale','log')
     xlabel('Window length m [samples]')
     ylabel('Allan variance  \sigma_\theta^2')
-    legend
+    if N > 2
+        
+        legend
+    end
     grid on
     
 subplot(2,1,2)
 hold on
 %     plot(tau,repmat(loss(y,agg_y_hat,1),[1 numel(tau)]),'LineWidth',2,'Color',color(N+1,:),'LineStyle','--')
     for n= 1:N
-        if n == N
+        if n == N && N > 2
         plot(tau,L(:,n),'LineWidth',1.5,'Color',color(n,:),'DisplayName','Fusion')
         else
         plot(tau,L(:,n),'LineWidth',1.5,'Color',color(n,:),'DisplayName',['Sensor ' int2str(n)])
@@ -138,7 +144,7 @@ hold on
     set(gca,'xscale','log')
     set(gca,'yscale','log')
     xlabel('Window length m [samples]')
-    ylabel('MSE')
+    ylabel('Estimation MSE')
     grid on
     
 function I = findmin(avar,N)

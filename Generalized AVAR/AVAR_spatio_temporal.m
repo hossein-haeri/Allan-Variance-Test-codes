@@ -24,10 +24,10 @@ t = abs(table2array(data(:,{'time'})));
 y = table2array(data(:,{'friction'}));
 
 figure(1)
-scatter3(t,x,y,'.')
-xlabel('$t$')
-ylabel('$x$')
-zlabel('y')
+scatter3(t,x,y,'.','MarkerEdgeAlpha',0.7)
+xlabel('$t [s]$')
+ylabel('$x [m]$')
+zlabel('$\tilde{\theta}$')
 
 
 n = numel(x);
@@ -40,8 +40,8 @@ x_range = x_max - x_min;
 
 gamma = 2;
 
-m_list_t = t_range/gamma^2;
-m_list_x = x_range/gamma^2;
+m_list_t = t_range/gamma^3;
+m_list_x = x_range/gamma^1;
 
 M = 10;
 
@@ -98,12 +98,14 @@ for m_x_counter= 1:numel(m_list_x)
         
         if ~isnan(y_bar(i_t,i_x))
             if ~isnan(y_bar(i_t+1,i_x))
-                E = E + (y_bar(i_t,i_x) -  y_bar(i_t+1,i_x))^2;
-                c  = c + 1;
+                credit_weight = counter(i_t,i_x)*counter(i_t+1,i_x);
+                E = E + credit_weight*(y_bar(i_t,i_x) -  y_bar(i_t+1,i_x))^2;
+                c  = c + credit_weight;
             end
             if ~isnan(y_bar(i_t,i_x+1))
-                E = E + (y_bar(i_t,i_x) -  y_bar(i_t,i_x+1))^2;
-                c  = c + 1;
+                credit_weight = counter(i_t,i_x)*counter(i_t,i_x+1);
+                E = E + credit_weight*(y_bar(i_t,i_x) -  y_bar(i_t,i_x+1))^2;
+                c  = c + credit_weight;
             end
         end
     end
@@ -126,17 +128,17 @@ end
 figure(2)
 [T, X] = meshgrid(m_list_t,m_list_x);
 surf(T, X, avar)
-xlabel('$m_x$')
-ylabel('$m_t$')
-zlabel('variance')
+xlabel('$\tau_t [s]$')
+ylabel('$\tau_x [m]$')
+zlabel('AVAR $\sigma^2_\theta$')
 set(gca,'xscale','log')
 set(gca,'yscale','log')
 
 grid on
-
-
+minimum = min(min(avar));
+[indx,indt] = find(avar==minimum);
 figure(1)
-draw_block([pi, 5, 10], m_list_t(8),m_list_x(8),20)
+draw_block([t_range/2, x_range/2, (max(y)-min(y))/2], m_list_t(indt),m_list_x(indx),max(y)-min(y))
 
 
 

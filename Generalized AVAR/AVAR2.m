@@ -1,4 +1,4 @@
-function [avar] = AVAR_uniform(t,x,tau)
+function [avar] = AVAR2(t,x,tau)
 n = numel(x);
 avar = [];
 counter = 0;

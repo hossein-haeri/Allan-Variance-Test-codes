@@ -22,12 +22,12 @@ faces = [3 4 8 7; ...
          7 8 6 5; ...
          1 2 4 3];
 g = hgtransform;     
-patch('Vertices',verts,'Faces',faces,'FaceColor',[.75 .75 .75],'Parent',g)
+patch('Vertices',verts,'Faces',faces,'FaceColor',[.9 .35 .35],'Parent',g)
 alpha(0.5)
 view(3)
 box on
 axis vis3d
-daspect([1 1 1])
+% daspect([1 1 1])
 x = 0;
 y = 0;
 z = 0;
