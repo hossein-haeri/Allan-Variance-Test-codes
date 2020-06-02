@@ -1,8 +1,8 @@
-function L = MSE(t,y,tau_list)
+function L = MSE(t,y,tau_list,tout, simout)
 L = [];
 t_max = max(t);
 t_min = min(t);
-y_t = get_truth_at((t_min:0.01:t_max))';
+y_t = get_truth_at((t_min:0.01:t_max),tout, simout)';
 initial_guess = 0;
 % for each window length tau
 for j= 1:numel(tau_list)

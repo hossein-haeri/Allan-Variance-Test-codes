@@ -67,11 +67,12 @@ end
 
 figure(1)
     hold on
-    plot(tout,simout,'DisplayName','Actual value')
-    scatter(t,y,50,'.','DisplayName','Records')
+    plot(tout,simout,'k-','LineWidth',1,'DisplayName','Actual value')
+    scatter(t,y,60,'.','DisplayName','Records','MarkerEdgeAlpha',0.7)
     [~,idx] = min(mean(avar,2));
     xline(t_range/2);
     xline(t_range/2+tau(idx));
+    legend('Actual value', 'Records')
     xlabel('$t$')
     ylabel('$\tilde{\theta}$')
     
