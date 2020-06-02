@@ -25,7 +25,7 @@ for tau_indx= 1:numel(tau_list)
     % for each sliding time t
     for t= t_min:dt:t_max-(2*tau)
         
-        % extract data points which fall into two adjacent windows 1 and 2 
+        % extract data points which fall into the two adjacent windows 1 and 2 
         x_1 = data_x(t<data_t & data_t<t+tau);
         x_2 = data_x(t<data_t+tau & data_t<t+2*tau);
         
@@ -42,6 +42,7 @@ for tau_indx= 1:numel(tau_list)
 
         % if weight is nonzero then
         if ~weight==0
+%                 weight = 1;
                 %  add the weighted squared difference of averages to E
                 E = E + weight*(x_bar_1 -  x_bar_2)^2;
                 % keep track of total weights

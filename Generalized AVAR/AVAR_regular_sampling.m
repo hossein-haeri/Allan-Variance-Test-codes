@@ -1,19 +1,21 @@
-close all
+% close all
 clear all
 clc
-set(groot,'defaulttextinterpreter','tex');
-set(groot, 'defaultAxesTickLabelInterpreter','tex');
-set(groot, 'defaultLegendInterpreter','tex');
+set(groot,'defaulttextinterpreter','latex');
+set(groot, 'defaultAxesTickLabelInterpreter','latex');
+set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',14);
 N = 1;
 color = lines(N+1);
 num_samples = 5000;
 t = linspace(0,10,num_samples);
+dt = (max(t) - min(t))/num_samples;
+
 q = floor(numel(t)/2);
-y = 80*sin(t).^1;
+y = 2*sin(t).^1;
 
 data = [];
-sigma = [80 100 120 30];
+sigma = [2 100 120 30];
 for n= 1:N
 %    data = [data; y + b(n)*(rand(1,numel(t))-0.5)];
     data = [data; y + (normrnd(0,sigma(n),[1 numel(t)]))];
@@ -23,15 +25,15 @@ W = 1./sigma(1:N).^2;
 data = [data; W*data./sum(W)];
 
 
-N = N;
+% N = N+1;
 
 
 y = y(floor(numel(t)/2):end);
 
 
 
-M = 20;
-gamma = 1.15;
+M = 35;
+gamma = 1.2;
 tau = floor(numel(t)/gamma^10);
 
 while tau(1) > 10
@@ -85,7 +87,8 @@ end
 
 
 
-t = t(q:end);    
+t = t(q:end);
+
 data = data(:,q:end);
 
 figure(1)
@@ -93,11 +96,11 @@ figure(1)
     plot(t,y,'LineWidth',2,'Color','k','LineStyle','--','DisplayName','actual')
     alpha(0.2)
     for n= 1:N
-        if n == N
-            plot(t,optimal_y_hat(n,:),'LineWidth',1.0,'Color',color(n,:),'LineStyle','-','DisplayName','Fusion Estimation')
-        else
+%         if n == N
+%             plot(t,optimal_y_hat(n,:),'LineWidth',1.0,'Color',color(n,:),'LineStyle','-','DisplayName','Fusion Estimation')
+%         else
             plot(t,optimal_y_hat(n,:),'LineWidth',1.0,'Color',color(n,:),'LineStyle','-','DisplayName',['Estimation ' int2str(n)])
-        end
+%         end
         scatter(t,data(n,:),'.','MarkerEdgeColor',color(n,:),'MarkerEdgeAlpha',0.2,'DisplayName','measurement','HandleVisibility','off')
     end
     xlabel('time [s]')
@@ -111,41 +114,43 @@ figure(2)
 subplot(2,1,1)
     hold on
     for n= 1:N
-        if n==N
-            plot(tau,avar(n,:),'Color',color(n,:),'LineWidth',1.5,'DisplayName','Fusion')
-        else
-            plot(tau,avar(n,:),'Color',color(n,:),'LineWidth',1.5,'DisplayName',['Sensor ' int2str(n)])
-        end
-        scatter(tau(I(n)),avar(n,I(n)),100,'*','MarkerEdgeColor',color(n,:),'HandleVisibility','off')
+%         if n==N
+%             plot(tau,avar(n,:),'Color',color(n,:),'LineWidth',1.5,'DisplayName','Fusion')
+%         else
+            plot(tau*dt,avar(n,:),'Color',color(n,:),'LineWidth',1.5,'DisplayName',['Sensor ' int2str(n)])
+%         end
+        scatter(tau(I(n))*dt,avar(n,I(n)),100,'*','MarkerEdgeColor',color(n,:),'HandleVisibility','off')
     end
-    set(gca,'xscale','log')
-    set(gca,'yscale','log')
-    xlabel('Window length m [samples]')
-    ylabel('Allan variance  \sigma_\theta^2')
-    if N > 2
-        
-        legend
-    end
+%     set(gca,'xscale','log')
+%     set(gca,'yscale','log')
+% %     xlabel('Window length m [samples]')
+%     xlabel('Window length \tau [sec]')
+%     ylabel('Allan variance  \sigma_\theta^2')
+%     if N > 2
+%         
+%         legend
+%     end
     grid on
     
 subplot(2,1,2)
 hold on
 %     plot(tau,repmat(loss(y,agg_y_hat,1),[1 numel(tau)]),'LineWidth',2,'Color',color(N+1,:),'LineStyle','--')
     for n= 1:N
-        if n == N && N > 2
-        plot(tau,L(:,n),'LineWidth',1.5,'Color',color(n,:),'DisplayName','Fusion')
-        else
-        plot(tau,L(:,n),'LineWidth',1.5,'Color',color(n,:),'DisplayName',['Sensor ' int2str(n)])
-        end
+%         if n == N && N > 2
+%         plot(tau,L(:,n),'LineWidth',1.5,'Color',color(n,:),'DisplayName','Fusion')
+%         else
+        plot(tau*dt,L(:,n),'LineWidth',1.5,'Color',color(n,:),'DisplayName',['Sensor ' int2str(n)])
+%         end
         [v,idx]=min(L(:,n));
-        scatter(tau(idx),v,100,'*','MarkerEdgeColor',color(n,:),'HandleVisibility','off')
+        scatter(tau(idx)*dt,v,100,'*','MarkerEdgeColor',color(n,:),'HandleVisibility','off')
     end
     
-    set(gca,'xscale','log')
-    set(gca,'yscale','log')
-    xlabel('Window length m [samples]')
-    ylabel('Estimation MSE')
-    grid on
+%     set(gca,'xscale','log')
+%     set(gca,'yscale','log')
+% %     xlabel('Window length m [samples]')
+%     xlabel('Window length \tau [sec]')
+%     ylabel('Estimation MSE')
+%     grid on
     
 function I = findmin(avar,N)
     I = zeros(1,N);

@@ -8,23 +8,30 @@ set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',16);
 % data = readtable('vehicles_data.csv','ReadVariableNames',true);
 
-% number of samples
-n = 1000;
 
+%% SETUP 
+% number of samples
+n = 500;
 % number of window lengths
 m = 30;
 
-% uniformly sample time stamps
-t = 10*sort(rand(1,n));
+% % uniformly sample time stamps
+% t = 10*sort(rand(1,n));
 
-%%% sample time stamps from a Gaussian distribution
-% t = 10*sort(normrnd(0,1,[1,n]));
-% t = t(floor(n/50):floor(n-n/50));
-% t = t + abs(min(t));
+% % regularly sampled time stamps
+% t = linspace(0,10,n);
+
+% % time stamps sampled from a Gaussian distribution
+t = 10*sort(normrnd(0,.2,[1,n]));
+t = t + abs(min(t));
+
+%%
+
+
 
 % generate noisy measurements
 y_true = get_truth_at(t);
-y = y_true + normrnd(0,2,[1 n]);
+y = y_true + normrnd(0,.5,[1 n]);
 
 t_max = max(t);
 t_min = min(t);
