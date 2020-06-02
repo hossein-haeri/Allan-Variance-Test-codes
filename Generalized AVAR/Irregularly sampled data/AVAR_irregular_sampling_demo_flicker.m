@@ -7,10 +7,12 @@ set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',16);
 
-
+% load('jerath_signal')
+simout = flicker(500)/200;
+tout = linspace(0,50,numel(simout));
 %% SETUP 
 % number of samples
-n = 500;
+n = 1000;
 % number of window lengths
 m = 30;
 % number if Monte-Carlo simulations
@@ -20,55 +22,61 @@ num_monte = 10;
 avar = zeros(m,num_monte);
 mse = zeros(m,num_monte);
 
-
 for k=1:num_monte
-    %% time stamp sampling (regular,irregular uniform, irregular Gaussian)
-    % uniformly sample time stamps
-    t = 50*sort(rand(1,n));
 
-    % % regularly sampled time stamps
-    % t = linspace(0,10,n);
+% uniformly sample time stamps
+t = 50*sort(rand(1,n));
 
-    % % time stamps sampled from a Gaussian distribution
-    % t = 10*sort(normrnd(0,.2,[1,n]));
-    % t = t + abs(min(t));
+% % regularly sampled time stamps
+% t = linspace(0,10,n);
 
-    t_max = max(t);
-    t_min = min(t);
-    t_range = t_max - t_min;
-    %%
+% % time stamps sampled from a Gaussian distribution
+% t = 10*sort(normrnd(0,.2,[1,n]));
+% t = t + abs(min(t));
 
-    % generate noisy measurements
-    y_true = get_truth_at(t);
-    y = y_true + normrnd(0,2,[1 n]);
+%%
 
-    % generate a list of 'm' potential window lengths (exponentially sampled)
-    gamma = 1.2;
-    tau = t_range/gamma^10;
-    for i= 1:m-1
-        tau = [tau(1)/gamma tau];
-    end
 
-    % calculate Allan variance of the data
-    avar(:,k) = AVAR2(t,y,tau);
 
-    % calculate Mean Squared Errror of the moving average estimation
-    mse(:,k) = MSE(t,y,tau);
+% generate noisy measurements
+y_true = get_truth_at(t,tout, simout);
+y = y_true + normrnd(0,.0005,[1 n]);
+
+t_max = max(t);
+t_min = min(t);
+t_range = t_max - t_min;
+
+% generate a list of 'm' potential window lengths (exponentially sampled)
+gamma = 1.2;
+tau = t_range/gamma^10;
+for i= 1:m-1
+    tau = [tau(1)/gamma tau];
 end
 
+% calculate Allan variance of the data
+avar(:,k) = AVAR2(t,y,tau);
+
+% calculate Mean Squared Errror of the moving average estimation
+mse(:,k) = MSE(t,y,tau,tout, simout);
+
+
+
+end
+
+
 %% visualization
+
 figure(1)
     hold on
-    T = (t_min:t_range/100:t_max);
-    plot(T,get_truth_at(T),'k--','LineWidth',2,'DisplayName','Actual value')
-    scatter(t,y,55,'.','DisplayName','Records','Fa)
-    alpha(0.6)
+    plot(tout,simout,'k-','LineWidth',1,'DisplayName','Actual value')
+    scatter(t,y,60,'.','DisplayName','Records','MarkerEdgeAlpha',0.7)
     [~,idx] = min(mean(avar,2));
     xline(t_range/2);
     xline(t_range/2+tau(idx));
+    legend('Actual value', 'Records')
     xlabel('$t$')
     ylabel('$\tilde{\theta}$')
-    legend('Actual value', 'Records')
+    
 figure(2)
     subplot(2,1,1)
         avg_avar = mean(avar,2)';
@@ -94,11 +102,11 @@ figure(2)
         xlim(xl);
 
 
-function L = MSE(t,y,tau_list)
+function L = MSE(t,y,tau_list,tout, simout)
 L = [];
 t_max = max(t);
 t_min = min(t);
-y_t = get_truth_at((t_min:0.01:t_max))';
+y_t = get_truth_at((t_min:0.01:t_max),tout, simout)';
 initial_guess = 0;
 % for each window length tau
 for j= 1:numel(tau_list)
@@ -125,13 +133,13 @@ end
 end
 
 
-
-
-function y = get_truth_at(t)
-
-    y = 0.2*t + 1*sin(t/2).^1+2;
+function y = get_truth_at(t,tout, simout)
     
+    y = zeros(1,numel(t));
+    for i=1:numel(t)
+        [~,indx] = min(abs(tout-t(i)));
+        y(i) = simout(indx);
+        % y = 1.0*t + 1*sin(t/1).^1+2;
+
+    end
 end
-
-
-
