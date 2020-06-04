@@ -6,16 +6,17 @@ set(groot,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',16);
-% data = readtable('vehicles_data.csv','ReadVariableNames',true);
-load('jerath_signal')
 
+% load('jerath_signal')
+simout = random_walk(2000)/5000;
+tout = linspace(0,50,numel(simout));
 %% SETUP 
 % number of samples
 n = 1000;
 % number of window lengths
 m = 30;
 % number if Monte-Carlo simulations
-num_monte = 1;
+num_monte = 10;
 
 
 avar = zeros(m,num_monte);
@@ -39,7 +40,7 @@ t = 50*sort(rand(1,n));
 
 % generate noisy measurements
 y_true = get_truth_at(t,tout, simout);
-y = y_true + normrnd(0,.001,[1 n]);
+y = y_true + normrnd(0,.0005,[1 n]);
 
 t_max = max(t);
 t_min = min(t);
@@ -67,11 +68,12 @@ end
 
 figure(1)
     hold on
-    plot(tout,simout,'DisplayName','Actual value')
-    scatter(t,y,50,'.','DisplayName','Records')
+    plot(tout,simout,'k-','LineWidth',1,'DisplayName','Actual value')
+    scatter(t,y,60,'.','DisplayName','Records','MarkerEdgeAlpha',0.7)
     [~,idx] = min(mean(avar,2));
     xline(t_range/2);
     xline(t_range/2+tau(idx));
+    legend('Actual value', 'Records')
     xlabel('$t$')
     ylabel('$\tilde{\theta}$')
     
@@ -100,7 +102,35 @@ figure(2)
         xlim(xl);
 
 
-
+function L = MSE(t,y,tau_list,tout, simout)
+L = [];
+t_max = max(t);
+t_min = min(t);
+y_t = get_truth_at((t_min:0.01:t_max),tout, simout)';
+initial_guess = 0;
+% for each window length tau
+for j= 1:numel(tau_list)
+    y_hat_hist = [];
+    tau = tau_list(j);
+    % start the simulate
+    for time=t_min:0.01:t_max
+        % collect data points that fall into the window 
+        valid_hist = y(t<=time & t>time-tau);
+        % if window is not empty
+        if ~isempty(valid_hist)
+            % estimate the current value as the average over the window
+            y_hat = mean(valid_hist);
+        else
+            % for empty window cases
+            y_hat = initial_guess;
+        end
+        y_hat_hist = [y_hat_hist; y_hat];
+    end
+    % compute the MSE of the moving average estimate using window length tau
+    l = sum((y_t-y_hat_hist).^2./numel(y_t));
+    L = [L; l];
+end
+end
 
 
 function y = get_truth_at(t,tout, simout)

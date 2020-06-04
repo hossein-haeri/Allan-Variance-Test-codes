@@ -24,7 +24,7 @@ mse = zeros(m,num_monte);
 for k=1:num_monte
 
 % uniformly sample time stamps
-t = 50*sort(rand(1,n));
+t = (tout(end)-tout(1))*sort(rand(1,n))+tout(1);
 
 % % regularly sampled time stamps
 % t = linspace(0,10,n);

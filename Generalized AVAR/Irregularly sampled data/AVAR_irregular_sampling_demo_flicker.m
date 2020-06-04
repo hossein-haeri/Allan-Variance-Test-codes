@@ -8,7 +8,7 @@ set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',16);
 
 % load('jerath_signal')
-simout = flicker(500)/200;
+simout = flicker(2000)/200;
 tout = linspace(0,50,numel(simout));
 %% SETUP 
 % number of samples

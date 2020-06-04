@@ -40,11 +40,12 @@ for k=1:num_monte
 
     % generate noisy measurements
     y_true = get_truth_at(t);
-    y = y_true + normrnd(0,2,[1 n]);
-%     y = y_true + 10*flicker(n);
+    y = y_true + normrnd(0,2,[1 n]); % Gaussian white noise
+%     y = y_true + 10*flicker(n);   % Flicker noise
+
     % generate a list of 'm' potential window lengths (exponentially sampled)
     gamma = 1.2;
-    tau = t_range/gamma^10;
+    tau = t_range/4;
     for i= 1:m-1
         tau = [tau(1)/gamma tau];
     end
@@ -127,7 +128,7 @@ end
 
 function y = get_truth_at(t)
     % change the function for different actual values
-    y = 0.2*t + 2*sin(t/5).^1+2;
+    y = 0.2*t + 2*sin(t/5);
     
 end
 
