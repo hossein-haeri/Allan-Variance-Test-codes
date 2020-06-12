@@ -12,7 +12,7 @@ After cloning the directory,
 * AVAR_irregular_sampling_demo_flicker.m script calculates AVAR of a Flicker signal currupted with noise
 * AVAR_irregular_sampling_demo_jerath_signal.m script calculates AVAR of any arbirtary signal (default is jerath_signal.m which is a bias instability signal) currupted with noise
 
-You can change noise characteristic from default noise (white Gaussian) to uniform white or flicker noise by changing noise type at line 22.
+Tip 1: You can change noise characteristic from default noise (white Gaussian) to uniform white or flicker noise by changing noise type at line 22.
 
-You can also change the sampling method (regularly/irregularly/clustered) by changing sampling_method at line 26.
+Tip 2: You can also change the sampling method (regularly/irregularly/clustered) by changing sampling_method at line 26.
 
