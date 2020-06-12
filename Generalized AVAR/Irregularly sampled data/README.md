@@ -14,3 +14,5 @@ After cloning the directory,
 
 You can change noise characteristic from default noise (white Gaussian) to uniform white or flicker noise by changing noise type at line 22.
 
+You can also change the sampling method (regularly/irregularly/clustered) by changing sampling_method at line 26.
+
