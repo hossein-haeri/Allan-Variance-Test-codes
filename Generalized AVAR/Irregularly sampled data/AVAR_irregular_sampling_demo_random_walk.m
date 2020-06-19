@@ -7,34 +7,56 @@ set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',16);
 
-% load('jerath_signal')
-simout = random_walk(2000)/5000;
-tout = linspace(0,50,numel(simout));
 %% SETUP 
 % number of samples
 n = 1000;
+% simulation duration
+duration = 50; % [sec]
 % number of window lengths
 m = 30;
-% number if Monte-Carlo simulations
-num_monte = 10;
+% number of Monte-Carlo simulations
+num_monte = 5;
+% noise type: 'Gaussain'/'uniform'/'flicker'
+noise_type = 'Gaussian';
+% amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
+noise_gain = 1;
+% time stamp sampling method: 'irregular','regular','clustered'
+sampling_method = 'irregular';
+%%
 
+% load('jerath_signal')
+simout = random_walk(2000)/5000;
+tout = linspace(0,50,numel(simout));
 
 avar = zeros(m,num_monte);
 mse = zeros(m,num_monte);
 
 for k=1:num_monte
+    %% time stamp sampling (regular,irregular uniform, irregular Gaussian)
+    if isequal(sampling_method,'irregular')
+        % uniformly sample time stamps
+        t = duration*sort(rand(1,n));
+    elseif isequal(sampling_method,'regular')
+        % regularly sampled time stamps
+        t = linspace(0,duration,n);
+    elseif isequal(sampling_method,'clustered')
+        % time stamps sampled from a Gaussian distribution
+        t = duration*sort(normrnd(0,.2,[1,n]));
+        t = t + abs(min(t));
+    end
 
-% uniformly sample time stamps
-t = 50*sort(rand(1,n));
+    % generate noisy measurements
+    y_true = get_truth_at(t);
+    if isequal(noise_type,'Gaussian')
+        y = y_true + normrnd(0,noise_gain,[1 n]); % Gaussian white noise
+    elseif isequal(noise_type,'uniform')
+        y = y_true + noise_gain*(rand(1, n)-0.5); % Gaussian white noise
+    elseif isequal(noise_type,'flicker')
+        y = y_true + noise_gain*flicker(n);   % Flicker noise
+    else
+        disp('Noise type is not defined!')
+    end
 
-% % regularly sampled time stamps
-% t = linspace(0,10,n);
-
-% % time stamps sampled from a Gaussian distribution
-% t = 10*sort(normrnd(0,.2,[1,n]));
-% t = t + abs(min(t));
-
-%%
 
 
 

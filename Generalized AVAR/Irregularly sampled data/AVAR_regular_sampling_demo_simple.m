@@ -10,38 +10,58 @@ set(groot, 'defaultAxesFontSize',16);
 
 %% SETUP 
 % number of samples
-n = 500;
+n = 200;
+% simulation duration
+duration = 50; % [sec]
 % number of window lengths
 m = 30;
 % number if Monte-Carlo simulations
-num_monte = 10;
+num_monte = 50;
+% noise type: 'Gaussain'/'uniform'/'flicker'
+noise_type = 'uniform';
+% amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
+noise_gain = 0.5;
+% time stamp sampling method: 'irregular','regular','clustered'
+sampling_method = 'regular';
 
 
+
+%%
 avar = zeros(m,num_monte);
 mse = zeros(m,num_monte);
 
 
 for k=1:num_monte
     %% time stamp sampling (regular,irregular uniform, irregular Gaussian)
-    % uniformly sample time stamps
-    t = 50*sort(rand(1,n));
-
-    % % regularly sampled time stamps
-    % t = linspace(0,10,n);
-
-    % % time stamps sampled from a Gaussian distribution
-    % t = 10*sort(normrnd(0,.2,[1,n]));
-    % t = t + abs(min(t));
-
+    if isequal(sampling_method,'irregular')
+        % uniformly sample time stamps
+        t = duration*sort(rand(1,n));
+    elseif isequal(sampling_method,'regular')
+        % regularly sampled time stamps
+        t = linspace(0,duration,n);
+    elseif isequal(sampling_method,'clustered')
+        % time stamps sampled from a Gaussian distribution
+        t = duration*sort(normrnd(0,.2,[1,n]));
+        t = t + abs(min(t));
+    end
+    
     t_max = max(t);
     t_min = min(t);
     t_range = t_max - t_min;
-    %%
+    
 
     % generate noisy measurements
     y_true = get_truth_at(t);
-    y = y_true + normrnd(0,2,[1 n]); % Gaussian white noise
-%     y = y_true + 10*flicker(n);   % Flicker noise
+    if isequal(noise_type,'Gaussian')
+        y = y_true + normrnd(0,noise_gain,[1 n]); % Gaussian white noise
+    elseif isequal(noise_type,'uniform')
+        y = y_true + noise_gain*(rand(1, n)-0.5); % Gaussian white noise
+    elseif isequal(noise_type,'flicker')
+        y = y_true + noise_gain*flicker(n);   % Flicker noise
+    else
+        disp('Noise type is not defined!')
+    end
+
 
     % generate a list of 'm' potential window lengths (exponentially sampled)
     gamma = 1.2;
@@ -49,9 +69,10 @@ for k=1:num_monte
     for i= 1:m-1
         tau = [tau(1)/gamma tau];
     end
-
+    T = t(2)-t(1);
+    m_list = round(tau./T);
     % calculate Allan variance of the data
-    avar(:,k) = AVAR2(t,y,tau);
+    avar(:,k) = AVAR_classic(tau,y,m_list);
 
     % calculate Mean Squared Errror of the moving average estimation
     mse(:,k) = MSE(t,y,tau);
@@ -71,10 +92,11 @@ figure(1)
     legend('Actual value', 'Records')
 figure(2)
     subplot(2,1,1)
+        hold on
         avg_avar = mean(avar,2)';
         std_avar = std(avar,0,2)';
-        ax1 = plot(tau, avg_avar,'LineWidth',2);
-        patch([tau fliplr(tau)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
+        ax1 = plot(m_list, avg_avar,'LineWidth',2);
+        patch([m_list fliplr(m_list)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
         xlabel('Window length $\tau [s]$')
         ylabel('AVAR $\sigma^2_\theta$')
         set(gca,'xscale','log')
@@ -82,6 +104,7 @@ figure(2)
         grid on
         xl = xlim;
     subplot(2,1,2)
+        hold on
         avg_mse = mean(mse,2)';
         std_mse = std(mse,0,2)';
         ax2 = plot(tau, avg_mse,'LineWidth',2);
@@ -128,7 +151,9 @@ end
 
 function y = get_truth_at(t)
     % change the function for different actual values
-    y = 0.2*t + 2*sin(t/5);
+    y = 0.2*t + 1*sin(t/2);
     
 end
+
+
 
