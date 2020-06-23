@@ -10,19 +10,19 @@ set(groot, 'defaultAxesFontSize',16);
 
 %% SETUP 
 % number of samples
-n = 200;
-% simulation duration
+n = 500;
+% simulation time duration
 duration = 50; % [sec]
 % number of window lengths
 m = 30;
 % number if Monte-Carlo simulations
-num_monte = 50;
+num_monte = 1;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'uniform';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
 noise_gain = 0.5;
 % time stamp sampling method: 'irregular','regular','clustered'
-sampling_method = 'regular';
+sampling_method = 'irregular';
 
 
 
@@ -72,7 +72,7 @@ for k=1:num_monte
     T = t(2)-t(1);
     m_list = round(tau./T);
     % calculate Allan variance of the data
-    avar(:,k) = AVAR_classic(tau,y,m_list);
+    avar(:,k) = AVAR2(tau,y,m_list);
 
     % calculate Mean Squared Errror of the moving average estimation
     mse(:,k) = MSE(t,y,tau);
@@ -95,26 +95,26 @@ figure(2)
         hold on
         avg_avar = mean(avar,2)';
         std_avar = std(avar,0,2)';
-        ax1 = plot(m_list, avg_avar,'LineWidth',2);
-        patch([m_list fliplr(m_list)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
+        plot(m_list, avg_avar,'LineWidth',2);
+%         patch([m_list fliplr(m_list)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
         xlabel('Window length $\tau [s]$')
         ylabel('AVAR $\sigma^2_\theta$')
         set(gca,'xscale','log')
         set(gca,'yscale','log')
         grid on
-        xl = xlim;
+        xlim([tau(1) tau(end)]);
     subplot(2,1,2)
         hold on
         avg_mse = mean(mse,2)';
         std_mse = std(mse,0,2)';
-        ax2 = plot(tau, avg_mse,'LineWidth',2);
-        patch([tau fliplr(tau)], [avg_mse-std_mse fliplr(avg_mse+std_mse)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
+        plot(tau, avg_mse,'LineWidth',2);
+%         patch([tau fliplr(tau)], [avg_mse-std_mse fliplr(avg_mse+std_mse)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
         xlabel('Window length $\tau [s]$')
         ylabel('Estimation MSE')
         set(gca,'xscale','log')
         set(gca,'yscale','log')
         grid on
-        xlim(xl);
+        xlim([tau(1) tau(end)]);
 
 
 function L = MSE(t,y,tau_list)

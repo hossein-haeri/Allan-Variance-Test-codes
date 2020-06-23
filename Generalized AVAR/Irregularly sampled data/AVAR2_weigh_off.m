@@ -1,4 +1,4 @@
-function avar = AVAR2(data_t,data_x,tau_list)
+function avar = AVAR2_weigh_off(data_t,data_x,tau_list)
 
 %% FUNCTION INPUTS %%
 % data_t: data time stamps
@@ -6,7 +6,6 @@ function avar = AVAR2(data_t,data_x,tau_list)
 % tau_list: list of window lengths which AVAR needs to be evaluated with 
 %% FUNCTION OUTPUTS %%
 % avar: Allan variance of the data evaluated with each window length in tau_list 
-
 
 %%
 avar = zeros(numel(tau_list),1);
@@ -43,7 +42,7 @@ for tau_indx= 1:numel(tau_list)
 
         % if weight is nonzero then
         if ~weight==0
-%                 weight = 1;
+                weight = 1;
                 %  add the weighted squared difference of averages to E
                 E = E + weight*(x_bar_1 -  x_bar_2)^2;
                 % keep track of total weights
