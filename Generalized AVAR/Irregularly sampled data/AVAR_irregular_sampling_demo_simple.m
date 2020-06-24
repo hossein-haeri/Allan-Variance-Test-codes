@@ -6,10 +6,10 @@ clc
 
 %%%%% SETUP %%%%
 % number of samples
-n = 1000;
+n = 500;
 
 % simulation duration
-duration = 1; % [sec]
+duration = 1000; % [sec]
 
 % number of window lengths
 m = 30;
@@ -21,7 +21,7 @@ num_monte = 50;
 noise_type = 'Gaussian';
 
 % amount of noise
-noise_gain = 0.1;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
+noise_gain = 0.5;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
 
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
@@ -53,7 +53,7 @@ for k=1:num_monte
     y_true = get_truth_at(t);
     if isequal(noise_type,'Gaussian')
         y = y_true + normrnd(0,noise_gain,[1 n]); % Gaussian white noise
-    elseif isequal(noise_type,'uniform')
+    elseif isequal(noise_2type,'uniform')
         y = y_true + noise_gain*(rand(1, n)-0.5); % Gaussian white noise
     elseif isequal(noise_type,'flicker')
         y = y_true + noise_gain*flicker(n);   % Flicker noise
@@ -73,13 +73,14 @@ for k=1:num_monte
 
     % calculate Mean Squared Errror of the moving average estimation
     mse(:,k) = MSE(t,y,tau);
+    
 end
 
 T = (t_min:t_range/200:t_max);
 Y = get_truth_at(T);
 
 
-experiment_name = 'ramp';
+experiment_name = 'square';
 
 plot_results(t,y,T,Y,avar,mse,tau,experiment_name);
 
@@ -115,8 +116,8 @@ end
 
 function y = get_truth_at(t)
     % change the function for different actual values
-    y = 1*t;
-%     y = square(0.01*t);
+%     y = 1*t;
+    y = square(0.01*t);
 %     y = sin(1*t)+0;
 
 end

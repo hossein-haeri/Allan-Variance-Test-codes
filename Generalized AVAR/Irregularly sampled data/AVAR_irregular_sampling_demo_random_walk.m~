@@ -3,11 +3,6 @@ clear all
 clc
 
 
-% set(groot,'defaulttextinterpreter','latex');
-% set(groot, 'defaultAxesTickLabelInterpreter','latex');
-% set(groot, 'defaultLegendInterpreter','latex');
-% set(groot, 'defaultAxesFontSize',14);
-
 %% SETUP 
 % number of samples
 n = 500;
@@ -16,19 +11,18 @@ duration = 1; % [sec]
 % number of window lengths
 m = 30;
 % number of Monte-Carlo simulations
-num_monte = 10;
+num_monte = 50;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
-noise_gain = .0005;
+noise_gain = 4;
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
 %%
 
-% load('jerath_signal')
-simout = OU(n)./5;
-simout = simout(1:end-1);
-tout = linspace(0,duration,numel(simout));
+% create a random walk signal
+data_y = random_walk(1000);
+data_t = linspace(0,duration,numel(data_y));
 
 avar = zeros(m,num_monte);
 mse = zeros(m,num_monte);
@@ -48,7 +42,7 @@ for k=1:num_monte
     end
 
     % generate noisy measurements
-    y_true = get_truth_at(t,tout, simout);
+    y_true = get_truth_at(t,data_t, data_y);
     if isequal(noise_type,'Gaussian')
         y = y_true + normrnd(0,noise_gain,[1 n]); % Gaussian white noise
     elseif isequal(noise_type,'uniform')
@@ -60,15 +54,12 @@ for k=1:num_monte
     end
 
 
-
-
-
 t_max = max(t);
 t_min = min(t);
 t_range = t_max - t_min;
 
 % generate a list of 'm' potential window lengths (exponentially sampled)
-gamma = 1.1;
+gamma = 1.2;
 tau = t_range/gamma^10;
 for i= 1:m-1
     tau = [tau(1)/gamma tau];
@@ -78,37 +69,33 @@ end
 avar(:,k) = AVAR2(t,y,tau);
 
 % calculate Mean Squared Errror of the moving average estimation
-mse(:,k) = MSE(t,y,tau,tout, simout);
+mse(:,k) = MSE(t,y,tau,data_t, data_y);
 
 
 
 end
-
-experiment_name = 'o_u';
-plot_results(t,y,tout,simout,avar,mse,tau,experiment_name);
+experiment_name = 'random_walk';
+plot_results(t,y,data_t,data_y,avar,mse,tau,experiment_name);
 
 
 function L = MSE(t,y,tau_list,tout, simout)
 L = [];
 t_max = max(t);
 t_min = min(t);
-y_t = get_truth_at((t_min:0.01:t_max),tout, simout)';
+y_t = get_truth_at((t_min:(t_max-t_min)/100:t_max),tout, simout)';
 initial_guess = 0;
 % for each window length tau
 for j= 1:numel(tau_list)
     y_hat_hist = [];
     tau = tau_list(j);
     % start the simulate
-    for time=t_min:0.01:t_max
+    for time=t_min:(t_max-t_min)/100:t_max
         % collect data points that fall into the window 
         valid_hist = y(t<=time & t>time-tau);
         % if window is not empty
         if ~isempty(valid_hist)
             % estimate the current value as the average over the window
             y_hat = mean(valid_hist);
-        else
-            % for empty window cases
-            y_hat = initial_guess;
         end
         y_hat_hist = [y_hat_hist; y_hat];
     end
@@ -119,12 +106,12 @@ end
 end
 
 
-function y = get_truth_at(t,tout, simout)
+function y = get_truth_at(t,data_t, data_y)
     
     y = zeros(1,numel(t));
     for i=1:numel(t)
-        [~,indx] = min(abs(tout-t(i)));
-        y(i) = simout(indx);
+        [~,indx] = min(abs(data_t-t(i)));
+        y(i) = data_y(indx);
         % y = 1.0*t + 1*sin(t/1).^1+2;
 
     end

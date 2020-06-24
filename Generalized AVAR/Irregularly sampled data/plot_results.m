@@ -17,14 +17,14 @@ fig1 = figure('Position', [10 10 700 200]);
 %         xline(data_t(i),'LineStyle','-','LineWidth',.5,'Color',[.8 .8 .8]);
 %     end
     scatter(data_t,data_y,40,'.','MarkerEdgeAlpha',0.3,'MarkerEdgeColor',[.4 .4 .4]);
-    p_true = plot(t_true,y_true,          'LineWidth',1.0,'Color',[.4 .4 .4],'LineStyle','--');
-    p_mse = plot(t_hat_mse,y_hat_mse,'-^','LineWidth',.75,'Color',[0.8500, 0.3250, 0.0980]);
-    p_hat = plot(t_hat,y_hat,        '-*','LineWidth',.75,'Color',[0, 0.4470, 0.7410]);
+    p_true = plot(t_true,y_true,          'LineWidth',1.0,'Color',[.4 .4 .4],'LineStyle','-');
+    p_mse = plot(t_hat_mse,y_hat_mse,'-^','LineWidth',1,'Color',[0.8500, 0.3250, 0.0980]);
+    p_hat = plot(t_hat,y_hat,        '-*','LineWidth',1,'Color',[0, 0.4470, 0.7410]);
 
-    p_hat.MarkerSize = 7;
-    p_mse.MarkerSize = 7;
-    p_hat.MarkerIndices = 1:15:length(y_hat);
-    p_mse.MarkerIndices = 1:15:length(y_hat_mse);
+    p_hat.MarkerSize = 9;
+    p_mse.MarkerSize = 9;
+    p_hat.MarkerIndices = 1:25:length(y_hat);
+    p_mse.MarkerIndices = 1:25:length(y_hat_mse);
 
 %     xline(t_range/2-tau(idx)/2,'LineStyle','--','LineWidth',2,'Color',[.3 .3 .3]);
 %     xline(t_range/2+tau(idx)/2,'LineStyle','--','LineWidth',2,'Color',[.3 .3 .3]);
@@ -42,8 +42,8 @@ fig2 = figure('Position', [400 10 700 300]);
         avg_avar = mean(avar,2)';
         std_avar = std(avar,0,2)';
         patch([tau fliplr(tau)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .2], 'EdgeColor', 'none', 'FaceAlpha',.1);
-        plot(tau, avg_avar,'LineWidth',1.0, 'Color',[.3 .3 .3]);
-        scatter(tau(idx_avar),min_avar,'*','MarkerEdgeColor',[0, 0.4470, 0.7410])
+        plot(tau, avg_avar,'LineWidth',1.5, 'Color',[.3 .3 .3]);
+        scatter(tau(idx_avar),min_avar,60,'*','MarkerEdgeColor',[0, 0.4470, 0.7410])
         xlabel('Window length $\tau [s]$')
         ylabel('AVAR $\sigma^2_A$')
         set(gca,'xscale','log')
@@ -56,8 +56,8 @@ fig2 = figure('Position', [400 10 700 300]);
         avg_mse = mean(mse,2)';
         std_mse = std(mse,0,2)';
         patch([tau fliplr(tau)], [avg_mse-std_mse fliplr(avg_mse+std_mse)], [.2 .2 .2], 'EdgeColor', 'none', 'FaceAlpha',.1);
-        plot(tau, avg_mse,'LineWidth',1.0, 'Color',[.3 .3 .3]);
-        scatter(tau(idx_mse),min_mse,'^','MarkerEdgeColor',[0.8500, 0.3250, 0.0980])
+        plot(tau, avg_mse,'LineWidth',1.5, 'Color',[.3 .3 .3]);
+        scatter(tau(idx_mse),min_mse,60,'^','MarkerEdgeColor',[0.8500, 0.3250, 0.0980])
         xlabel('Window length $\tau [s]$')
         ylabel('Estimation MSE')
         set(gca,'xscale','log')

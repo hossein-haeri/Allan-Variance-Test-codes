@@ -15,7 +15,7 @@ num_monte = 50;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
-noise_gain = 2;
+noise_gain = 5;
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
 %%
