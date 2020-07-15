@@ -23,8 +23,9 @@ noise_type = 'Gaussian';
 % amount of noise
 noise_gain = 0.1;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
 
+% tau sampling setting
 gamma = 1.1;
-tau = t_range/5;
+P = 5;
 
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
@@ -51,6 +52,8 @@ for k=1:num_monte
     t_max = max(t);
     t_min = min(t);
     t_range = t_max - t_min;
+    tau = t_range/P;
+    
     
     % gen 2erate noisy measurements
     y_true = get_truth_at(t);

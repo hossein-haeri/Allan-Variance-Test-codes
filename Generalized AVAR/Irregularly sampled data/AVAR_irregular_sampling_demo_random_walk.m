@@ -2,14 +2,14 @@ close all
 clear all
 clc
 
-
+rng(104);
 %% SETUP 
 % number of samples
 n = 500;
 % simulation duration
 duration = 1; % [sec]
 % number of window lengths
-m = 30;
+m = 40;
 % number of Monte-Carlo simulations
 num_monte = 50;
 % noise type: 'Gaussain'/'uniform'/'flicker'
@@ -60,7 +60,7 @@ t_range = t_max - t_min;
 
 % generate a list of 'm' potential window lengths (exponentially sampled)
 gamma = 1.2;
-tau = t_range/gamma^10;
+tau = t_range/gamma^5;
 for i= 1:m-1
     tau = [tau(1)/gamma tau];
 end

@@ -9,10 +9,10 @@ clc
 n = 500;
 
 % simulation duration
-duration = 1; % [sec]
+duration = 10; % [sec]
 
 % number of window lengths
-m = 40;
+m = 100;
 
 % number of Monte-Carlo simulations
 num_monte = 50;
@@ -21,10 +21,11 @@ num_monte = 50;
 noise_type = 'Gaussian';
 
 % amount of noise
-noise_gain = 0.1;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
+noise_gain = 0.2;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
 
-gamma = 1.1;
-tau = t_range/5;
+% tau sampling setting
+gamma = 1.05;
+P = 10;
 
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
@@ -51,6 +52,8 @@ for k=1:num_monte
     t_max = max(t);
     t_min = min(t);
     t_range = t_max - t_min;
+    tau = t_range/P;
+    
     
     % gen 2erate noisy measurements
     y_true = get_truth_at(t);
@@ -82,9 +85,13 @@ T = (t_min:t_range/200:t_max);
 Y = get_truth_at(T);
 
 
-experiment_name = 'ramp';
+experiment_name = 'sine';
 
 plot_results(t,y,T,Y,avar,mse,tau,experiment_name);
+
+analyze_results(t,y,T,Y,avar,mse,tau,experiment_name);
+
+
 
 
 function L = MSE(t,y,tau_list)
@@ -114,13 +121,13 @@ for j= 1:numel(tau_list)
 end
 end
 
-
+ 
 
 function y = get_truth_at(t)
     % change the function for different actual values
-    y = 1*t;
+%     y = 1*t;
 %     y = square(0.02*t);
-%     y = sin(3*t)+0;
+    y = sin(2*t)+0;
 
 end
 
