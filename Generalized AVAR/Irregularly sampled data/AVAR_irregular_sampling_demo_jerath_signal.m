@@ -2,31 +2,35 @@ close all
 clear all
 clc
 
-set(groot,'defaulttextinterpreter','latex');
-set(groot, 'defaultAxesTickLabelInterpreter','latex');
-set(groot, 'defaultLegendInterpreter','latex');
-set(groot, 'defaultAxesFontSize',16);
-
-load('jerath_signal')
 
 %% SETUP 
 % number of samples
 n = 1000;
+
 % simulation duration
-duration = 50; % [sec]
+duration = 1; % [sec]
+
 % number of window lengths
 m = 30;
+
 % number of Monte-Carlo simulations
-num_monte = 10;
+num_monte = 50;
+
 % noise type: 'Gaussain'/'uniform'/'flicker'
-noise_type = 'Gaussian';
+noise_type = 'flicker';
+
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
-noise_gain = 1;
+noise_gain = 2;
+
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
 
 avar = zeros(m,num_monte);
 mse = zeros(m,num_monte);
+load('jerath_signal')
+tout = tout(1:n);
+simout = simout(1:n)*10000;
+
 
 for k=1:num_monte
 
@@ -44,7 +48,7 @@ for k=1:num_monte
     end
 
     % generate noisy measurements
-    y_true = get_truth_at(t);
+    y_true = simout';
     if isequal(noise_type,'Gaussian')
         y = y_true + normrnd(0,noise_gain,[1 n]); % Gaussian white noise
     elseif isequal(noise_type,'uniform')
@@ -75,58 +79,22 @@ for k=1:num_monte
 
 
 end
-
-
-%% visualization
-
-figure(1)
-    hold on
-    plot(tout,simout,'k-','LineWidth',1,'DisplayName','Actual value')
-    scatter(t,y,60,'.','DisplayName','Records','MarkerEdgeAlpha',0.7)
-    [~,idx] = min(mean(avar,2));
-    xline(t_range/2);
-    xline(t_range/2+tau(idx));
-    legend('Actual value', 'Records')
-    xlabel('$t$')
-    ylabel('$\tilde{\theta}$')
-    
-figure(2)
-    subplot(2,1,1)
-        avg_avar = mean(avar,2)';
-        std_avar = std(avar,0,2)';
-        ax1 = plot(tau, avg_avar,'LineWidth',2);
-        patch([tau fliplr(tau)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
-        xlabel('Window length $\tau [s]$')
-        ylabel('AVAR $\sigma^2_\theta$')
-        set(gca,'xscale','log')
-        set(gca,'yscale','log')
-        grid on
-        xl = xlim;
-    subplot(2,1,2)
-        avg_mse = mean(mse,2)';
-        std_mse = std(mse,0,2)';
-        ax2 = plot(tau, avg_mse,'LineWidth',2);
-        patch([tau fliplr(tau)], [avg_mse-std_mse fliplr(avg_mse+std_mse)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
-        xlabel('Window length $\tau [s]$')
-        ylabel('Estimation MSE')
-        set(gca,'xscale','log')
-        set(gca,'yscale','log')
-        grid on
-        xlim(xl);
+experiment_name = 'flicker';
+plot_results(t,y,tout,simout,avar,mse,tau,experiment_name);
 
         
 function L = MSE(t,y,tau_list,tout, simout)
 L = [];
 t_max = max(t);
 t_min = min(t);
-y_t = get_truth_at((t_min:0.01:t_max),tout, simout)';
+y_t = get_truth_at((t_min:(t_max-t_min)/100:t_max),tout, simout)';
 initial_guess = 0;
 % for each window length tau
 for j= 1:numel(tau_list)
     y_hat_hist = [];
     tau = tau_list(j);
     % start the simulate
-    for time=t_min:0.01:t_max
+    for time=t_min:(t_max-t_min)/100:t_max
         % collect data points that fall into the window 
         valid_hist = y(t<=time & t>time-tau);
         % if window is not empty

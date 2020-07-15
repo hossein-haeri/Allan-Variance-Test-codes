@@ -2,31 +2,27 @@ close all
 clear all
 clc
 
-set(groot,'defaulttextinterpreter','latex');
-set(groot, 'defaultAxesTickLabelInterpreter','latex');
-set(groot, 'defaultLegendInterpreter','latex');
-set(groot, 'defaultAxesFontSize',16);
 
 %% SETUP 
 % number of samples
-n = 1000;
+n = 500;
 % simulation duration
-duration = 50; % [sec]
+duration = 1; % [sec]
 % number of window lengths
 m = 30;
 % number of Monte-Carlo simulations
-num_monte = 5;
+num_monte = 50;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
-noise_gain = 1;
+noise_gain = 5;
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
 %%
 
-% load('jerath_signal')
-simout = random_walk(2000)/5000;
-tout = linspace(0,50,numel(simout));
+% create a random walk signal
+data_y = random_walk(1000);
+data_t = linspace(0,duration,numel(data_y));
 
 avar = zeros(m,num_monte);
 mse = zeros(m,num_monte);
@@ -46,7 +42,7 @@ for k=1:num_monte
     end
 
     % generate noisy measurements
-    y_true = get_truth_at(t);
+    y_true = get_truth_at(t,data_t, data_y);
     if isequal(noise_type,'Gaussian')
         y = y_true + normrnd(0,noise_gain,[1 n]); % Gaussian white noise
     elseif isequal(noise_type,'uniform')
@@ -57,12 +53,6 @@ for k=1:num_monte
         disp('Noise type is not defined!')
     end
 
-
-
-
-% generate noisy measurements
-y_true = get_truth_at(t,tout, simout);
-y = y_true + normrnd(0,.0005,[1 n]);
 
 t_max = max(t);
 t_min = min(t);
@@ -79,72 +69,33 @@ end
 avar(:,k) = AVAR2(t,y,tau);
 
 % calculate Mean Squared Errror of the moving average estimation
-mse(:,k) = MSE(t,y,tau,tout, simout);
+mse(:,k) = MSE(t,y,tau,data_t, data_y);
 
 
 
 end
-
-
-%% visualization
-
-figure(1)
-    hold on
-    plot(tout,simout,'k-','LineWidth',1,'DisplayName','Actual value')
-    scatter(t,y,60,'.','DisplayName','Records','MarkerEdgeAlpha',0.7)
-    [~,idx] = min(mean(avar,2));
-    xline(t_range/2);
-    xline(t_range/2+tau(idx));
-    legend('Actual value', 'Records')
-    xlabel('$t$')
-    ylabel('$\tilde{\theta}$')
-    
-figure(2)
-    subplot(2,1,1)
-        avg_avar = mean(avar,2)';
-        std_avar = std(avar,0,2)';
-        ax1 = plot(tau, avg_avar,'LineWidth',2);
-        patch([tau fliplr(tau)], [avg_avar-std_avar fliplr(avg_avar+std_avar)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
-        xlabel('Window length $\tau [s]$')
-        ylabel('AVAR $\sigma^2_\theta$')
-        set(gca,'xscale','log')
-        set(gca,'yscale','log')
-        grid on
-        xl = xlim;
-    subplot(2,1,2)
-        avg_mse = mean(mse,2)';
-        std_mse = std(mse,0,2)';
-        ax2 = plot(tau, avg_mse,'LineWidth',2);
-        patch([tau fliplr(tau)], [avg_mse-std_mse fliplr(avg_mse+std_mse)], [.2 .2 .9], 'EdgeColor', 'none', 'FaceAlpha',.2);
-        xlabel('Window length $\tau [s]$')
-        ylabel('Estimation MSE')
-        set(gca,'xscale','log')
-        set(gca,'yscale','log')
-        grid on
-        xlim(xl);
+experiment_name = 'random_walk';
+plot_results(t,y,data_t,data_y,avar,mse,tau,experiment_name);
 
 
 function L = MSE(t,y,tau_list,tout, simout)
 L = [];
 t_max = max(t);
 t_min = min(t);
-y_t = get_truth_at((t_min:0.01:t_max),tout, simout)';
+y_t = get_truth_at((t_min:(t_max-t_min)/100:t_max),tout, simout)';
 initial_guess = 0;
 % for each window length tau
 for j= 1:numel(tau_list)
     y_hat_hist = [];
     tau = tau_list(j);
     % start the simulate
-    for time=t_min:0.01:t_max
+    for time=t_min:(t_max-t_min)/100:t_max
         % collect data points that fall into the window 
         valid_hist = y(t<=time & t>time-tau);
         % if window is not empty
         if ~isempty(valid_hist)
             % estimate the current value as the average over the window
             y_hat = mean(valid_hist);
-        else
-            % for empty window cases
-            y_hat = initial_guess;
         end
         y_hat_hist = [y_hat_hist; y_hat];
     end
@@ -155,12 +106,12 @@ end
 end
 
 
-function y = get_truth_at(t,tout, simout)
+function y = get_truth_at(t,data_t, data_y)
     
     y = zeros(1,numel(t));
     for i=1:numel(t)
-        [~,indx] = min(abs(tout-t(i)));
-        y(i) = simout(indx);
+        [~,indx] = min(abs(data_t-t(i)));
+        y(i) = data_y(indx);
         % y = 1.0*t + 1*sin(t/1).^1+2;
 
     end
