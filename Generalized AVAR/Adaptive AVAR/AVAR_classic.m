@@ -1,4 +1,4 @@
-function [avar] = AVAR_classic(tau,x,m_list)
+function avar = AVAR_classic(x,tau,m_list)
 
 %% FUNCTION INPUTS %%
 % data_t: data time stamps

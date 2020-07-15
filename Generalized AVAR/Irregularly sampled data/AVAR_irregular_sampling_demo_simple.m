@@ -9,10 +9,10 @@ clc
 n = 500;
 
 % simulation duration
-duration = 1000; % [sec]
+duration = 1; % [sec]
 
 % number of window lengths
-m = 30;
+m = 40;
 
 % number of Monte-Carlo simulations
 num_monte = 50;
@@ -21,7 +21,10 @@ num_monte = 50;
 noise_type = 'Gaussian';
 
 % amount of noise
-noise_gain = 0.5;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
+noise_gain = 0.1;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
+
+gamma = 1.1;
+tau = t_range/5;
 
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
@@ -62,8 +65,7 @@ for k=1:num_monte
     end
 
     % generate a list of 'm' potential window lengths (exponentially sampled)
-    gamma = 1.2;
-    tau = t_range/4;
+
     for i= 1:m-1
         tau = [tau(1)/gamma tau];
     end
@@ -80,7 +82,7 @@ T = (t_min:t_range/200:t_max);
 Y = get_truth_at(T);
 
 
-experiment_name = 'square';
+experiment_name = 'ramp';
 
 plot_results(t,y,T,Y,avar,mse,tau,experiment_name);
 
@@ -116,9 +118,9 @@ end
 
 function y = get_truth_at(t)
     % change the function for different actual values
-%     y = 1*t;
-    y = square(0.01*t);
-%     y = sin(1*t)+0;
+    y = 1*t;
+%     y = square(0.02*t);
+%     y = sin(3*t)+0;
 
 end
 
