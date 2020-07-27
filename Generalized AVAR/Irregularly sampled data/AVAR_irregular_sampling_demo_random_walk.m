@@ -9,9 +9,9 @@ n = 500;
 % simulation duration
 duration = 1; % [sec]
 % number of window lengths
-m = 40;
+m = 60;
 % number of Monte-Carlo simulations
-num_monte = 50;
+num_monte = 100;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
@@ -59,8 +59,8 @@ t_min = min(t);
 t_range = t_max - t_min;
 
 % generate a list of 'm' potential window lengths (exponentially sampled)
-gamma = 1.2;
-tau = t_range/gamma^5;
+gamma = 1.1;
+tau = t_range/gamma^6;
 for i= 1:m-1
     tau = [tau(1)/gamma tau];
 end

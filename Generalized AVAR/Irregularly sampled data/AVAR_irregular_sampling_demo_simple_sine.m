@@ -6,16 +6,16 @@ clc
 
 %%%%% SETUP %%%%
 % number of samples
-n = 500;
+n = 1000;
 
 % simulation duration
 duration = 10; % [sec]
 
 % number of window lengths
-m = 100;
+m = 50;
 
 % number of Monte-Carlo simulations
-num_monte = 50;
+num_monte = 100;
 
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
@@ -24,8 +24,8 @@ noise_type = 'Gaussian';
 noise_gain = 0.2;  %(for Gaussian is std; for uniform is BW; for flicker is scaler)
 
 % tau sampling setting
-gamma = 1.05;
-P = 10;
+gamma = 1.1;
+P = 15;
 
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';

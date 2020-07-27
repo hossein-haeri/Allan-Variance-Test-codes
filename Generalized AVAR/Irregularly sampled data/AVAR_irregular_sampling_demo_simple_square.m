@@ -6,16 +6,16 @@ clc
 
 %%%%% SETUP %%%%
 % number of samples
-n = 500;
+n = 1000;
 
 % simulation duration
 duration = 1000; % [sec]
 
 % number of window lengths
-m = 70;
+m = 100;
 
 % number of Monte-Carlo simulations
-num_monte = 50;
+num_monte = 100;
 
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
@@ -88,6 +88,7 @@ Y = get_truth_at(T);
 experiment_name = 'square';
 
 plot_results(t,y,T,Y,avar,mse,tau,experiment_name);
+analyze_results(t,y,T,Y,avar,mse,tau,experiment_name);
 
 
 function L = MSE(t,y,tau_list)

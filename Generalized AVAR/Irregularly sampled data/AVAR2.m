@@ -14,7 +14,7 @@ t_min = data_t(1);
 t_max = data_t(end);
 
 % resulation of sliding integration
-dt = mean(diff(data_t));
+dt = mean(diff(data_t))/2;
 % dt = 0.1;
 
 % for each window length (tau) in tau_list
@@ -22,13 +22,16 @@ for tau_indx= 1:numel(tau_list)
     tau = tau_list(tau_indx);
     total_weights = 0;
     E = 0;
-
+    dt = tau/2;
     % for each sliding time t
-    for t= t_min:dt:t_max-(2*tau)
-        
+    for t= t_min:dt:t_max
+
         % extract data points which fall into the two adjacent windows 1 and 2 
         x_1 = data_x(t<data_t & data_t<t+tau);
-        x_2 = data_x(t<data_t+tau & data_t<t+2*tau);
+        x_2 = data_x(t+tau<data_t & data_t<t+2*tau);
+        
+%         x_1 = data_x(data_t<t & data_t>t-tau);
+%         x_2 = data_x(data_t<t-tau & data_t>t-2*tau);
         
         % count how many points each windows contains
         c_1 = numel(x_1);

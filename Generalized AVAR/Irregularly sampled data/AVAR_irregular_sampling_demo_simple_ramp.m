@@ -15,7 +15,7 @@ duration = 1; % [sec]
 m = 40;
 
 % number of Monte-Carlo simulations
-num_monte = 50;
+num_monte = 100;
 
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
@@ -121,7 +121,7 @@ end
 
 function y = get_truth_at(t)
     % change the function for different actual values
-    y = 1*t;
+    y = 1.0*t;
 %     y = square(0.02*t);
 %     y = sin(3*t)+0;
 

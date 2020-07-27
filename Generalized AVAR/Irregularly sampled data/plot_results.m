@@ -81,7 +81,16 @@ align_Ylabels(fig2)
 
 
 saveas(fig1,['example_' experiment_name '_data'],'svg')  
-saveas(fig2,['example_' experiment_name '_avar'],'svg')   
+saveas(fig2,['example_' experiment_name '_avar'],'svg')
+
+
+% tau(idx_avar)
+% tau(idx_mse)
+% min_avar
+% min_mse
+% 
+% e = (min_avar-min_mse)/min_mse*100
+
 end
 
 
