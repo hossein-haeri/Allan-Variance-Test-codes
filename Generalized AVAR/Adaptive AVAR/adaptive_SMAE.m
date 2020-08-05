@@ -2,7 +2,7 @@ close all
 clc
 clear all
 
-figure('Position',[20 20 800 800])
+
 set(groot,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
@@ -12,7 +12,7 @@ c1 = [0, 0.4470, 0.7410];
 c2 = [0.8500, 0.3250, 0.0980];
 
 load('jerath_signal.mat');
-n = 2000;
+n = 10000;
 H = 100;
 x_r = simout(1:n);
 
@@ -20,10 +20,11 @@ t = linspace(0,2*pi,n);
 x_r = 1*sin(5*t)+2.0000*t+0.5000*sin(13*t);
 
 for i=1:n
-    if t(i) > 3 && t(i) < 5
-        x_r(i) = x_r(i) + 2*sin(27*t(i));
+    if t(i) > 1 && t(i) < 2 || t(i) > 4 && t(i) < 5 
+        x_r(i) = x_r(i) + 1*sin(50*t(i)) + 6;
     end
 end
+
 % x = zeros(n,1);
 
 M = 20;
@@ -47,7 +48,7 @@ for i= 1:M-1
     end
 end
 
-m = (1:25);
+m = (1:50);
 min_hist = [];
 for k= 1:n
     
@@ -92,16 +93,20 @@ for k= 1:n
 end
 
 
-figure(1)
-plot(x_r(1:k),'Color',c1,'LineWidth',2)
+figure('Name','Signal + noise','Position',[20 50 800 500])
+    scatter((1:k),x,'.','MarkerEdgeColor',c2,'LineWidth',1.5)
     hold on
-    scatter((1:k),x,'MarkerEdgeColor',c2,'LineWidth',1.5)
+    plot(x_r(1:k),'Color',c1,'LineWidth',2)
     legend('actual','measurement')
-%     ylim([-0.0003,0.0008])
-    xlabel('Time $[k]$')
+    xlabel('Time step $[k]$')
     ylabel('Parameter $\theta$')
     title(['Noise scale: $\sigma=' num2str(sigma) '$'])
     grid on
 
-figure(2)
-plot(min_hist)
+figure('Name','Window length vs. time','Position',[20 600 800 300])
+    % plot(min_hist)
+    % plot_with_bounds((1:n),min_hist,50,[0.9290, 0.6940, 0.1250]);
+    plot(round(movmean(min_hist,100)),'LineWidth',2)
+    xlabel('Time step [$k$]')
+    ylabel('Window length $m$')
+    grid on
