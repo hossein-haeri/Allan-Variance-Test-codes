@@ -15,7 +15,7 @@ duration = 1; % [sec]
 m = 40;
 
 % number of Monte-Carlo simulations
-num_monte = 100;
+num_monte = 500;
 
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
@@ -88,7 +88,7 @@ Y = get_truth_at(T);
 experiment_name = 'ramp';
 
 plot_results(t,y,T,Y,avar,mse,tau,experiment_name);
-
+analyze_results(t,y,T,Y,avar,mse,tau,experiment_name);
 
 function L = MSE(t,y,tau_list)
 L = [];

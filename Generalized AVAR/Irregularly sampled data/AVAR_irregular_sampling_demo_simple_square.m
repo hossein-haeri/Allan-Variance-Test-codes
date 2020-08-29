@@ -15,7 +15,7 @@ duration = 1000; % [sec]
 m = 100;
 
 % number of Monte-Carlo simulations
-num_monte = 100;
+num_monte = 500;
 
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';

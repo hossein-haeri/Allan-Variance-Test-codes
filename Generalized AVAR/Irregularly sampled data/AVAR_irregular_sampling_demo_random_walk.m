@@ -2,20 +2,20 @@ close all
 clear all
 clc
 
-rng(104);
+rng(115);
 %% SETUP 
 % number of samples
 n = 500;
 % simulation duration
 duration = 1; % [sec]
 % number of window lengths
-m = 60;
+m = 100;
 % number of Monte-Carlo simulations
-num_monte = 100;
+num_monte = 500;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
-noise_gain = 5;
+noise_gain = 2;
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
 %%
@@ -59,8 +59,8 @@ t_min = min(t);
 t_range = t_max - t_min;
 
 % generate a list of 'm' potential window lengths (exponentially sampled)
-gamma = 1.1;
-tau = t_range/gamma^6;
+gamma = 1.05;
+tau = t_range/3;
 for i= 1:m-1
     tau = [tau(1)/gamma tau];
 end
@@ -75,6 +75,7 @@ mse(:,k) = MSE(t,y,tau,data_t, data_y);
 
 end
 experiment_name = 'random_walk';
+analyze_results(t,y,data_t,data_y,avar,mse,tau,experiment_name);
 plot_results(t,y,data_t,data_y,avar,mse,tau,experiment_name);
 
 

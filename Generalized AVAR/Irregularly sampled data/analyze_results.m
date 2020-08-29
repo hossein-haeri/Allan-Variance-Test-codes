@@ -4,7 +4,7 @@ set(groot,'defaulttextinterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
 set(groot, 'defaultAxesFontSize',14);
-
+format shortEng
 [min_avar,idx_avar] = min(mean(avar,2));
 [min_mse, idx_mse] = min(mean(mse,2));
 

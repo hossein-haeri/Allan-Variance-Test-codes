@@ -39,8 +39,9 @@ fig1 = figure('Position', [10 10 550 350]);
     y_max=max(data_y);
     ylim([y_min y_max+(y_max-y_min)/3.5])
     grid on
-    legend('Data','Actual','MSE Est.','AVAR Est.','Location','north','Orientation','horizontal','FontSize',10.5,'EdgeColor',[.4 .4 .4])
-
+    legend('Data','Actual','Opt. Est.','AVAR Est.','Location','north','Orientation','horizontal','FontSize',10.5,'EdgeColor',[.4 .4 .4])
+    box on 
+    
 fig2 = figure('Position', [400 10 550 350]);
     subplot(2,1,1)
         hold on
@@ -56,6 +57,7 @@ fig2 = figure('Position', [400 10 550 350]);
         set(gca,'xscale','log')
         set(gca,'yscale','log')
         grid on
+        box on
         xlim([tau(1) tau(end)]);
 %         title('(a)')
         
@@ -76,13 +78,15 @@ fig2 = figure('Position', [400 10 550 350]);
         grid on
         xlim([tau(1) tau(end)]);
 %         title('(b)')
+        box on
         
 align_Ylabels(fig2)
 
 
 saveas(fig1,['example_' experiment_name '_data'],'svg')  
 saveas(fig2,['example_' experiment_name '_avar'],'svg')
-
+saveas(fig1,['example_' experiment_name '_data'],'fig')  
+saveas(fig2,['example_' experiment_name '_avar'],'fig')
 
 % tau(idx_avar)
 % tau(idx_mse)
