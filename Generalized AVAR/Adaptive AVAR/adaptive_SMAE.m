@@ -11,21 +11,26 @@ set(groot, 'defaultAxesFontSize',16);
 c1 = [0, 0.4470, 0.7410];
 c2 = [0.8500, 0.3250, 0.0980];
 
-load('jerath_signal.mat');
 n = 10000;
 H = 100;
-x_r = simout(1:n);
 
+% create timestamps
 t = linspace(0,2*pi,n);
+
+% build up a reference signal
 x_r = 1*sin(5*t)+2.0000*t+0.5000*sin(13*t);
 
+% % load the bias instability signal
+% load('jerath_signal.mat');
+% x_r = simout(1:n);
+
+% add some fast-variying dynamics in some parts
 for i=1:n
     if t(i) > 1 && t(i) < 2 || t(i) > 4 && t(i) < 5 
         x_r(i) = x_r(i) + 1*sin(50*t(i)) + 6;
     end
 end
 
-% x = zeros(n,1);
 
 M = 20;
 
@@ -35,7 +40,7 @@ gamma = 1.2;
 %     tau = [floor(tau(1)/gamma) tau];
 % end
 
-c =1;
+
 
 
 
@@ -50,6 +55,9 @@ end
 
 m = (1:50);
 min_hist = [];
+
+
+c =1;
 for k= 1:n
     
     sigma = 0.8;

@@ -15,13 +15,13 @@ num_monte = 500;
 % noise type: 'Gaussain'/'uniform'/'flicker'
 noise_type = 'Gaussian';
 % amount of noise (for Gaussian is std; for uniform is BW; for flicker is scaler)
-noise_gain = 2;
+noise_gain = 5;
 % time stamp sampling method: 'irregular','regular','clustered'
 sampling_method = 'irregular';
 %%
 
 % create a random walk signal
-data_y = random_walk(1000);
+data_y = random_walk(5000);
 data_t = linspace(0,duration,numel(data_y));
 
 avar = zeros(m,num_monte);

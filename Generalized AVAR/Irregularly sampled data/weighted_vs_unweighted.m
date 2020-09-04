@@ -96,6 +96,7 @@ ylabel('AVAR error')
 set(gca,'xscale','log')
 legend('show','Location','northwest')
 grid on
+box on
 saveas(fig1,'weighted_vs_unweighted_error','svg')
 
 
@@ -128,6 +129,7 @@ fig2 = figure('Position', [400 10 500 300]);
         set(gca,'xscale','log')
         set(gca,'yscale','log')
         grid on
+        box on
         xlim([tau(1) tau(end)]);
         legend('show','Location','northwest')
 saveas(fig2,'weighted_vs_unweighted','svg')   
