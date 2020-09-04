@@ -1,0 +1,35 @@
+clear all
+clc
+close all
+
+n = 500;
+
+% noise = normrnd(0,1,[n 1]);
+% amp = sin(7/n*(1:n)) + 2;
+% sig = noise .* amp';
+% 
+% plot(sig,'LineWidth',1.5)
+% 
+% xlabel('Time [s]')
+% ylabel('Noise')
+% ylim([-10,10])
+
+
+
+t = (1:n);
+sig = sin(10/n*t);
+
+for i= 1:n
+   
+    if i>n/3 && i<2*n/3
+       sig(i) = sig(i) + sin(100/n*t(i));
+    end
+end
+
+
+plot(sig,'LineWidth',1.5)
+
+ylim([-10,10])
+xlabel('Time [s]')
+ylabel('Actual signal')
+

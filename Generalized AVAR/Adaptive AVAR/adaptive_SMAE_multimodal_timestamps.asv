@@ -107,25 +107,25 @@ for k= h+1:tick:simul_timesteps
             hold off
             box on
     
-    subplot(4,1,2)
-        plot(tau,avar,'LineWidth',1.5)
-%         hold on
-%         plot(tau,avar)
-        xlabel('Window length $\tau [s]$')
-        ylabel('AVAR $\sigma^2_A$')
-        xlim([0,0.5])
-        ylim([0,200])
-        set(gca,'xscale','log')
-        set(gca,'yscale','log')
-        grid on
-        box on
+%     subplot(3,1,2)
+%         plot(tau,avar,'LineWidth',1.5)
+% %         hold on
+% %         plot(tau,avar)
+%         xlabel('Window length $\tau [s]$')
+%         ylabel('AVAR $\sigma^2_A$')
+%         xlim([0,0.5])
+%         ylim([0,200])
+%         set(gca,'xscale','log')
+%         set(gca,'yscale','log')
+%         grid on
+%         box on
         
        
-        subplot(4,1,3)
+        subplot(3,1,2)
         t_prime = linspace(horizon,t,numel(AVAR));
         plot(t_prime,AVAR,'Color',c(1,:),'LineWidth',1.5)
         hold on
-        plot(t_prime,movmean(MSE,[1 0]),'Color',c(2,:),'LineWidth',1.5)
+        plot(t_prime,movmean(MSE,[10 0]),'Color',c(2,:),'LineWidth',1.5)
         grid on
         xlim([0,1])
         ylim([-0.005,0.05])
@@ -137,7 +137,7 @@ for k= h+1:tick:simul_timesteps
         hold off
         pause(0.001)
         
-        subplot(4,1,4)
+        subplot(3,1,3)
             hold on
             plot(t_est,avar_est,'Color',c(1,:),'LineWidth',1.5);
             plot(t_est,opt_est,'Color',c(2,:)','LineWidth',1.5);
@@ -145,7 +145,7 @@ for k= h+1:tick:simul_timesteps
             
             xlabel('Time [s]')
             ylabel('Estimated Signal')
-            legend('avar est.','opt est.')
+            legend('avar est.','opt est.','actual')
             xlim([0,1])
             hold off
             grid on
