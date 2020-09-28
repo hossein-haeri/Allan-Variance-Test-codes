@@ -8,7 +8,7 @@ y = 0;
 x_r = 0;
 for i= 1:r
     y = y + c(r).*sin(freq_list(i).*t) + 1*t;
-    x_r = x_r + c(r).*sin(freq_list(i).*t_r);
+    x_r = x_r + c(r).*sin(freq_list(i).*t_r) + 1*t_r;
 end
 
 % plot(y);

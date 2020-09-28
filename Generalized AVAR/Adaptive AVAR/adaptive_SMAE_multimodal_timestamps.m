@@ -10,9 +10,9 @@ set(groot, 'defaultAxesFontSize',16);
 c = lines(4);
 simul_timesteps = 50000; % number of the simulation timesteps
 num_measurements = 5000; % number of the measurements
-SNR = 20; % Signal to Noise power ratio
+SNR = 5; % Signal to Noise power ratio
 num_tau = 50; % number of the timescales in AVAR analysis
-horizon = .1; % DAVAR horizon [fraction of the entire signal]
+horizon = .07; % DAVAR horizon [fraction of the entire signal]
 
 
 % sample timestamps
@@ -28,6 +28,10 @@ t_r = linspace(0,1,simul_timesteps);
 signal = signal - mean(signal);
 signal_ref = signal_ref - mean(signal_ref);
 
+
+
+
+
 % build up a noise signal
 noise = normrnd(0,1,[1, num_measurements]);
 
@@ -39,8 +43,13 @@ noise = normrnd(0,1,[1, num_measurements]);
 signal_power = rms(signal)^2;
 noise_power = rms(noise)^2;
 snr = signal_power/noise_power;
-y = sqrt(SNR/snr)*signal + noise;
-signal_ref = signal_ref * sqrt(SNR/snr);
+y = sqrt(SNR/snr).*signal + noise;
+signal_ref = signal_ref .* sqrt(SNR/snr);
+
+
+
+
+
 
 % make an exponentially increasing list of window lengths
 tau_max = horizon/2;
@@ -56,38 +65,83 @@ h = floor(horizon*simul_timesteps);
 y_max = max(y);
 y_min = min(y);
 
-subplot(2,1,1)
 
 
-AVAR = [];
+
+AVAR_tau = [];
 MSE = [];
 opt_est = [];
 avar_est = [];
 tick = 100;
-% figure('units','normalized','outerposition',[0 0 1 1])
+figure('units','normalized','outerposition',[0 0 1 1])
 x_hat = zeros(1,numel(tau));
 t_est = [];
 ll = 0;
+signal_ref_ll = [];
+mse_min = 1;
+X_hat = [];
+AVAR_est = [];
+
 for k= h+1:tick:simul_timesteps
-    ll = ll + tick;
+    
+    k/simul_timesteps
+    
+    ll = ll + 1;
     t = k/simul_timesteps;
     recent = timestamps<=t & timestamps > t-horizon;
     recent_r = t_r<=t & t_r > t-horizon;
     
     avar = AVAR2(timestamps(recent),y(recent),tau);
     
-    [~,avar_min] = min(avar);
-    AVAR = [AVAR tau(avar_min)];
+    
+%     coeff = polyfit(tau',avar,20);
+%     avar_fitted = polyval(coeff,tau');
+
+    % fit a GPR model to better evaluate the min point
+%     gprMdl = fitrgp(tau',avar,'Basis','linear',...
+%       'FitMethod','exact','PredictMethod','exact');
+%   
+
+%       gprMdl = fitrgp(tau',avar,'KernelFunction','squaredexponential');
+%   avar_filtered = resubPredict(gprMdl);
+    kernel = gausswin(5);
+    avar_filtered = movmean(avar,3);
+  
+    
+    % evaluate the min point in AVAR
+    [~,avar_min] = min(avar_filtered);
+    AVAR_tau = [AVAR_tau tau(avar_min)];
+    
     
     x_hat = irreg_moving_avg_estimator(t, timestamps(recent), y(recent), tau, x_hat);
-    [~, mse_min] = min(abs(x_hat - signal_ref(k).*ones(1,numel(tau))));
-    MSE = [MSE tau(mse_min)];
+    X_hat = [X_hat x_hat'];
+    AVAR_est = [AVAR_est x_hat(avar_min)];
     
-    opt_est = [opt_est x_hat(mse_min)];
-    t_est = [t_est t];
-    avar_est = [avar_est x_hat(avar_min)];
+%     [~, mse_min_new] = min(abs(x_hat - signal_ref(k).*ones(1,numel(tau))));
     
-    if mod(k,1) == 0
+    
+%     % make the mse_min rational
+%     if abs(tau(mse_min_new)-tau(mse_min)) <= tick/simul_timesteps
+%         tau_mse_min = tau(mse_min_new);
+%     else
+%         tau_mse_min = tau(mse_min) + tick/simul_timesteps * sign(tau(mse_min)-tau(mse_min_new));
+%     end
+    
+%     MSE = [MSE tau(mse_min_new)];
+%     
+%     [~,mse_min] = min(abs(tau-tau_mse_min));
+    
+    
+%     opt_est = [opt_est x_hat(mse_min)];
+%     t_est = [t_est t];
+%     avar_est = [avar_est x_hat(avar_min)];
+    signal_ref_ll = [signal_ref_ll signal_ref(k)];
+    
+    
+    
+    
+%     if mod(k,1) == 1 || k > simul_timesteps - tick -1
+    if 1
     subplot(4,1,1)    
         scatter(timestamps(recent),y(recent),'.')
             xlabel('Time [s]')
@@ -108,9 +162,11 @@ for k= h+1:tick:simul_timesteps
             box on
     
     subplot(4,1,2)
-        plot(tau,avar,'LineWidth',1.5)
-%         hold on
-%         plot(tau,avar)
+        
+        plot(tau,avar,'LineWidth',1.0)
+        hold on
+        plot(tau,avar_filtered,'LineWidth',1.0)
+        
         xlabel('Window length $\tau [s]$')
         ylabel('AVAR $\sigma^2_A$')
         xlim([0,0.5])
@@ -118,41 +174,104 @@ for k= h+1:tick:simul_timesteps
         set(gca,'xscale','log')
         set(gca,'yscale','log')
         grid on
+        hold off
         box on
         
+        
        
-        subplot(4,1,3)
-        t_prime = linspace(horizon,t,numel(AVAR));
-        plot(t_prime,AVAR,'Color',c(1,:),'LineWidth',1.5)
-        hold on
-        plot(t_prime,movmean(MSE,[1 0]),'Color',c(2,:),'LineWidth',1.5)
-        grid on
-        xlim([0,1])
-        ylim([-0.005,0.05])
-        xlabel('Time [s]')
-        ylabel('Window length $\tau [s]$')
-        legend('$\tau_{avar}$','$\tau_{opt}$')
-%         set(gca,'yscale','log')
-        
-        hold off
-        pause(0.001)
-        
-        subplot(4,1,4)
-            hold on
-            plot(t_est,avar_est,'Color',c(1,:),'LineWidth',1.5);
-            plot(t_est,opt_est,'Color',c(2,:)','LineWidth',1.5);
-%             plot(t_est, signal_ref(1:ll),'Color','k','LineWidth',1.5);
-            
-            xlabel('Time [s]')
-            ylabel('Estimated Signal')
-            legend('avar est.','opt est.')
-            xlim([0,1])
-            hold off
-            grid on
+%         subplot(4,1,3)
+%         t_prime = linspace(horizon,t,numel(AVAR));
+%         plot(t_prime,AVAR,'Color',c(1,:),'LineWidth',1.5)
+%         hold on
+%         plot(t_prime,movmean(MSE,[1 0]),'Color',c(2,:),'LineWidth',1.5)
+%         grid on
+%         yline(tau_max,'LineStyle','--');
+%         yline(0,'LineStyle','--');
+%         xlim([0,1])
+%         ylim([-0.005,1.2*tau_max])
+%         xlabel('Time [s]')
+%         ylabel('Window length $\tau [s]$')
+%         legend('$\tau_{avar}$','$\tau_{opt}$')
+%         axis('equal')%         set(gca,'yscale','log')
+%         
+%         hold off
+%         
+%         
+%         
+%         subplot(4,1,4)
+%             hold on
+%             plot(t_est,avar_est,'Color',c(1,:),'LineWidth',1.5);
+%             plot(t_est,opt_est,'Color',c(2,:)','LineWidth',1.5);
+%             plot(t_est, signal_ref_ll,'Color','k','LineWidth',1.0,'LineStyle','--');
+%             
+%             xlabel('Time [s]')
+%             ylabel('Estimated Signal')
+%             legend('avar est.','opt est.','actual')
+%             xlim([0,1])
+%             ylim([y_min,y_max])
+%             hold off
+%             grid on
          
-            k
+    pause(0.001)
     end
 end
 
 
+SE = (X_hat - signal_ref_ll).^2;
+MSE = mean(SE,2);
+SE_avar = (AVAR_est - signal_ref_ll).^2;
+
+fixed_avar = AVAR2(timestamps,y,tau);
+[~, I] = min(fixed_avar);
+
+[~, I_mse] = min(MSE);
+mean(SE_avar)
+
+figure(10)
+hold on
+plot(tau,MSE,'LineWidth',1,'Color',c(1,:))
+yline(mean(SE_avar),'Color',c(2,:),'LineWidth',2);
+scatter(tau(I),MSE(I),60,'*', 'MarkerEdgeColor',c(3,:))
+
+legend('with a fixed widow length','DAVAR','AVAR')
+xlabel('Window length $\tau [s]$')
+ylabel('MSE')
+grid on
+
+% for i=1:ll
+%     
+%     % the AVAR-based MA estimate at time=i
+% %     X_hat(AVAR_tau(i),i)
+%     AVAR_est(i)
+%     
+% end
+figure(11)
+labels = {'Optimal fixed $\tau$', 'AVAR-based fixed $\tau$', 'DAVAR (varying $\tau$)'};
+X = categorical(labels);
+X = reordercats(X,labels);
+values = [min(MSE), MSE(I), mean(SE_avar)];
+bar(X,values)
+grid on
+ylabel('MSE')
+
+figure(12)
+subplot(2,1,1)
+scatter(timestamps,y,'.')
+xlabel('Time [s]')
+ylabel('Measurements $\theta$')
+grid on
+subplot(2,1,2)
+histogram(timestamps,50)
+
+
+
+figure(13)
+hold on
+plot(X_hat(I_mse,:),'DisplayName','Optimal fixed $\tau$')
+plot(X_hat(I,:),'DisplayName','AVAR-based fixed $\tau$')
+plot(AVAR_est,'DisplayName','DAVAR (varying $\tau$)')
+plot(signal_ref_ll,'DisplayName','Actual','LineStyle','--')
+xlabel('Timestep [k]')
+ylabel('Measurements $\theta$')
+grid on
 
