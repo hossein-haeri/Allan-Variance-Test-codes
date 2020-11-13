@@ -6,7 +6,7 @@ for i=1:numel(tau)
     avar_sum = 0;
     c = 0;
     for k= 1:n-2*T
-        avar_sum = avar_sum + 0.5*(mean(x(k:k+T))-mean(x(k+T:k+2*T)))^2;
+        avar_sum = avar_sum + 0.5*(mean(x(k:k+T-1))-mean(x(k+T:k+2*T-1)))^2;
         c = c + 1;
     end
     avar = [avar avar_sum./c];
